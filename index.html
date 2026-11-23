@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Receiving Watch · Shwapno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f6f1f0; --surface:#ffffff; --surface-2:#efe4e3; --ink:#1a1412; --ink-soft:#5b504d; --ink-mute:#8a7d79; --line:#e3d6d4;
+  --brand:#d81f2a; --brand-deep:#a5141d;
+  --over:#eb6834; --over-ink:#9a3a12; --over-soft:#fdeadf;
+  --under:#2a78d6; --under-ink:#17508f; --under-soft:#e3eefb;
+  --good:#1e8449; --shadow:0 1px 0 rgba(26,20,18,.04),0 8px 24px -12px rgba(26,20,18,.18);
+  --font-head:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{color-scheme:dark;--bg:#140f0e;--surface:#1c1615;--surface-2:#261d1b;--ink:#f5eeec;--ink-soft:#c9bcb8;--ink-mute:#9a8c88;--line:#392c29;
+    --brand:#ef3b3f;--brand-deep:#d81f2a;--over:#d95926;--over-ink:#f4a47c;--over-soft:#3a2118;--under:#3987e5;--under-ink:#8fbdf3;--under-soft:#16273d;--shadow:none;}
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-body);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.wrap{max-width:1360px;margin:0 auto;padding:0 28px}
+h1,h2,h3{font-family:var(--font-head);font-weight:700;margin:0;letter-spacing:.005em;line-height:1.1}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+header.top{background:var(--surface);border-bottom:1px solid var(--line);border-top:3px solid var(--brand)}
+.top-in{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:22px 0 18px;flex-wrap:wrap}
+.top h1{font-size:34px}
+.top p{margin:6px 0 0;color:var(--ink-soft);max-width:62ch}
+.status{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:12.5px;color:var(--ink-soft)}
+.lock{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid var(--line);border-radius:2px;background:var(--surface-2);color:var(--ink);font-weight:500}
+.lock svg{width:14px;height:14px}
+.demo{background:var(--over-soft);color:var(--over-ink);border-bottom:1px solid var(--line);padding:8px 0;font-size:13px}
+
+/* controls */
+.controls{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.row-open{display:flex;align-items:center;gap:14px;padding:14px 0 10px;flex-wrap:wrap}
+.lbl{font-size:12.5px;color:var(--ink-soft);font-weight:500}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);padding:6px 12px;border-radius:2px;cursor:pointer;font-weight:500;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.period{margin-left:auto;font-size:13px;color:var(--ink-soft)}
+.period b{color:var(--ink);font-weight:600}
+.row-filters{display:flex;gap:10px;flex-wrap:wrap;padding:0 0 14px;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:3px;min-width:140px;flex:1 1 140px;max-width:220px}
+.f label{font-size:11.5px;color:var(--ink-soft);font-weight:500}
+.f select,.f input{height:36px;border:1px solid var(--line);background:var(--surface);border-radius:2px;padding:0 9px;width:100%}
+.f select:hover,.f input:hover{border-color:var(--ink-mute)}
+.btn{height:36px;padding:0 14px;border:1px solid var(--line);background:var(--surface);border-radius:2px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-deep);border-color:var(--brand-deep)}
+
+/* tabs */
+.tabs{display:flex;gap:0;margin:22px 0 16px;border-bottom:2px solid var(--line)}
+.tab{border:0;background:none;padding:10px 22px 12px;cursor:pointer;font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--ink-mute);display:flex;align-items:center;gap:9px;margin-bottom:-2px;border-bottom:4px solid transparent}
+.tab i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.tab[data-t=over] i{background:var(--over)} .tab[data-t=under] i{background:var(--under)}
+.tab[aria-selected=true]{color:var(--ink)}
+.tab[data-t=over][aria-selected=true]{border-bottom-color:var(--over)}
+.tab[data-t=under][aria-selected=true]{border-bottom-color:var(--under)}
+.tabhelp{margin:-6px 0 16px;color:var(--ink-soft);max-width:92ch}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);padding:14px 16px 13px;box-shadow:var(--shadow)}
+.kpi .k{font-size:12.5px;color:var(--ink-soft);font-weight:500}
+.kpi .v{font-family:var(--font-head);font-size:38px;font-weight:700;line-height:1.05;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--ink-mute);margin-top:2px}
+
+/* panels */
+.grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:start}
+.grid>.panel:first-child{position:sticky;top:150px}
+.panel{background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);padding:16px 18px 16px;min-width:0}
+.panel h2{font-size:21px}
+.panel .sub{color:var(--ink-mute);font-size:12.5px;margin:3px 0 12px}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.mapbox{background:var(--surface-2);border-radius:2px;display:flex;justify-content:center;padding:8px}
+.mapbox svg{width:100%;max-width:470px;height:auto;max-height:600px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12px;color:var(--ink-soft);margin-top:10px}
+.legend .sw{display:inline-flex;align-items:center;gap:5px}
+.legend .sw i{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+.bars{display:flex;flex-direction:column;gap:5px}
+.bar{display:grid;grid-template-columns:minmax(90px,34%) 1fr auto;gap:10px;align-items:center;width:100%;border:0;background:none;padding:3px 4px;text-align:left;cursor:pointer;border-radius:2px}
+.bar:hover,.bar.on{background:var(--surface-2)}
+.bar .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.bar .track{height:12px;position:relative}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0;background:var(--accent);min-width:2px}
+.bar .val{font-size:12.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar .val b{color:var(--ink);font-weight:600}
+.empty{color:var(--ink-mute);padding:22px 4px;text-align:center}
+
+/* table */
+.tbl-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.scroll{overflow:auto;border:1px solid var(--line)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;min-width:1050px}
+th{position:sticky;top:0;background:var(--surface-2);text-align:left;font-weight:600;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+th.r,td.r{text-align:right}
+th:hover{color:var(--brand)}
+th .ar{opacity:.55;margin-left:3px;font-size:10px}
+td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--surface-2)}
+td.wrapc{white-space:normal;min-width:190px}
+td .small{display:block;color:var(--ink-mute);font-size:11.5px}
+.score{display:flex;align-items:center;gap:8px;min-width:150px}
+.score .tr{flex:1;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;position:relative}
+.score .tr b{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:4px}
+.band{font-size:11.5px;font-weight:600;padding:2px 7px;border-radius:2px;border:1px solid var(--accent);color:var(--accent-ink)}
+.band.hi{background:var(--accent);color:#fff}
+.band.mid{background:var(--accent-soft)}
+.pager{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:13px;color:var(--ink-soft);flex-wrap:wrap}
+.pager .btn{height:32px}
+.note{font-size:12.5px;color:var(--ink-mute);margin:10px 0 0}
+footer{padding:26px 0 44px;color:var(--ink-mute);font-size:12.5px}
+.tip{position:fixed;pointer-events:none;z-index:50;background:var(--ink);color:var(--bg);padding:8px 10px;border-radius:2px;font-size:12.5px;line-height:1.45;max-width:260px;opacity:0;transition:opacity .08s}
+.tip b{font-weight:600}
+.loading{padding:60px 0;text-align:center;color:var(--ink-soft)}
+.err{background:var(--over-soft);color:var(--over-ink);border:1px solid var(--over);padding:14px 16px;margin:20px 0}
+@media (max-width:1000px){.grid{grid-template-columns:1fr}.grid>.panel:first-child{position:static}.kpis{grid-template-columns:repeat(2,1fr)}.period{margin-left:0}.status{align-items:flex-start}}
+@media (max-width:560px){.wrap{padding:0 14px}.top h1{font-size:28px}.kpis{grid-template-columns:1fr 1fr}.kpi .v{font-size:30px}.controls{position:static}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap top-in">
+  <div>
+    <h1>Receiving watch</h1>
+    <p>Articles and outlets where stock received is far above what sales and the standard stock days justify (over receiving), or far below it (under receiving).</p>
+  </div>
+  <div class="status">
+    <span class="lock" id="lockPill" title="The closing date is always the latest date in the data. It cannot be changed here."><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span id="closingTxt">Closing …</span></span>
+    <span id="updatedTxt"></span>
+  </div>
+</div></header>
+<div class="demo" id="demoBar" hidden><div class="wrap"><b>Demo data.</b> These numbers are made up, so you can preview the layout. Run <code>update_dashboard.bat</code> to load real data.</div></div>
+
+<div class="controls"><div class="wrap">
+  <div class="row-open">
+    <span class="lbl">Opening stock date (Sundays)</span>
+    <div class="chips" id="chips" role="group" aria-label="Opening date"></div>
+    <span class="period" id="period"></span>
+  </div>
+  <div class="row-filters">
+    <div class="f"><label for="fRegion">Division</label><select id="fRegion"></select></div>
+    <div class="f"><label for="fDistrict">District</label><select id="fDistrict"></select></div>
+    <div class="f"><label for="fZone">Zone</label><select id="fZone"></select></div>
+    <div class="f"><label for="fOutlet">Outlet</label><input id="fOutlet" list="outletList" placeholder="Code or name" autocomplete="off"><datalist id="outletList"></datalist></div>
+    <div class="f"><label for="fMaster">Master category</label><select id="fMaster"></select></div>
+    <div class="f"><label for="fCat">Category</label><select id="fCat"></select></div>
+    <div class="f"><label for="fArt">Article (table only)</label><input id="fArt" placeholder="Code or name" autocomplete="off"></div>
+    <button class="btn" id="reset" type="button">Reset filters</button>
+  </div>
+</div></div>
+
+<main class="wrap">
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-t="over" aria-selected="true"><i></i>Over receiving</button>
+    <button class="tab" role="tab" data-t="under" aria-selected="false"><i></i>Under receiving</button>
+  </div>
+  <p class="tabhelp" id="tabHelp"></p>
+  <div id="app"><div class="loading">Loading data…</div></div>
+  <footer id="foot"></footer>
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const OUTLINE = "M115.9,490.8 L105.9,365.3 L76.5,361.2 L85.1,335.8 L59.4,319.8 L78.2,254.1 L0.9,213.0 L46.7,156.3 L107.2,150.6 L12.2,94.6 L18.8,57.9 L55.6,35.6 L35.5,23.2 L42.4,7.8 L70.9,45.8 L115.7,31.7 L143.5,72.3 L167.9,76.6 L178.6,48.4 L200.7,79.1 L194.8,147.2 L470.8,175.1 L415.5,268.5 L359.0,271.8 L335.0,313.3 L385.0,394.4 L420.9,310.9 L456.3,314.3 L497.9,567.6 L466.1,547.3 L446.6,564.1 L462.9,624.7 L430.4,578.2 L427.7,533.9 L419.9,522.5 L423.0,544.2 L409.6,541.9 L425.3,477.7 L404.1,462.2 L412.9,457.2 L416.1,449.4 L423.6,449.1 L410.3,443.7 L413.9,450.1 L403.7,461.6 L404.3,469.1 L368.9,402.3 L330.1,444.7 L281.8,390.3 L280.8,352.9 L281.9,352.6 L283.3,354.1 L284.1,354.5 L285.0,354.4 L285.4,353.7 L284.0,352.5 L284.4,351.2 L264.9,353.9 L256.0,387.9 L263.6,432.1 L275.6,437.2 L275.1,447.8 L280.1,442.8 L279.0,445.9 L283.8,453.1 L283.9,456.8 L245.5,494.6 L217.7,506.9 L236.6,477.5 L214.7,494.5 L220.3,475.9 L214.9,473.1 L208.2,498.3 L160.0,453.7 L168.5,479.7 L163.0,493.3 L152.6,449.4 L146.8,482.2 L129.6,482.5 L128.5,479.5 L130.5,478.7 L129.1,477.6 L132.6,475.9 L133.3,469.2 L125.8,468.5 L115.9,490.8 Z";
+const COORD = {"Rangpur":[133,100],"Dinajpur":[68,112],"Kurigram":[177,93],"Gaibandha":[164,144],"Nilphamari":[91,81],"Panchagarh":[60,38],"Thakurgaon":[49,70],"Lalmonirhat":[153,82],"Rajshahi":[64,244],"Bogura":[146,194],"Pabna":[131,283],"Sirajganj":[181,236],"Natore":[104,239],"Naogaon":[100,199],"Joypurhat":[109,168],"Chapainawabganj":[30,220],"Khulna":[165,407],"Jessore":[129,370],"Satkhira":[114,417],"Bagerhat":[190,425],"Chuadanga":[91,321],"Kushtia":[119,294],"Magura":[151,337],"Meherpur":[67,308],"Narail":[161,370],"Barishal":[252,419],"Bhola":[282,422],"Jhalokati":[234,426],"Patuakhali":[248,455],"Pirojpur":[210,432],"Barguna":[225,476],"Dhaka":[256,303],"Gazipur":[258,284],"Narayanganj":[266,323],"Tangail":[204,257],"Manikganj":[213,298],"Munshiganj":[269,331],"Narsingdi":[289,292],"Kishoreganj":[296,237],"Faridpur":[196,325],"Gopalganj":[195,387],"Madaripur":[234,371],"Shariatpur":[259,363],"Rajbari":[176,308],"Mymensingh":[255,204],"Jamalpur":[206,184],"Netrokona":[290,191],"Sherpur":[215,176],"Sylhet":[412,189],"Moulvibazar":[402,233],"Habiganj":[364,243],"Sunamganj":[362,171],"Chattogram":[402,455],"Cox's Bazar":[427,551],"Comilla":[338,340],"Feni":[362,386],"Noakhali":[330,406],"Lakshmipur":[301,394],"Chandpur":[284,364],"Brahmanbaria":[331,287],"Rangamati":[447,425],"Bandarban":[449,472],"Khagrachari":[423,376],"Savar":[238,292],"Jhenaidah":[122,347]};
+const ALIAS = {"Chittagong":"Chattogram","Cumilla":"Comilla","Jashore":"Jessore","Khagrachhari":"Khagrachari","Bogra":"Bogura","Barisal":"Barishal"};
+const RAMP = {over:["#fbdccb","#f6b393","#ee8a5c","#eb6834","#a8431a"], under:["#cde2fb","#86b6ef","#5598e7","#2a78d6","#184f95"]};
+const COPY = {
+  over:{name:"Over receiving", help:"Received more than the outlet can sell before closing. Quantity is the excess over sales plus the standard stock days. The score runs from 0 to 3; above 2.5 is high, above 1 is medium."},
+  under:{name:"Under receiving", help:"Stock on hand is below what sales plus the standard stock days require, so the outlet risks running out. Articles with more than 100 standard days are measured against 100 days of average sales. The score runs from 0 to 3."}
+};
+const $ = s => document.querySelector(s);
+const nf = n => Math.round(n).toLocaleString("en-US");
+const bdt = n => n>=1e7 ? (n/1e7).toFixed(2)+" Cr" : n>=1e5 ? (n/1e5).toFixed(1)+" L" : nf(n);
+const pct = (a,b) => b>0 ? (100*a/b) : 0;
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fdate = (s,y) => new Date(s+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",...(y?{year:"numeric"}:{})});
+
+let META, DATA = {}, S = {open:null, tab:"over", f:{region:"",district:"",zone:"",outlet:"",master:"",cat:"",art:""}, sort:{key:"score",dir:-1}, page:0};
+let OUT=[], ART=[], COMBO=[], ARTCOMBO=[];
+
+async function getJSON(u){
+  const r = await fetch(u,{cache:"no-cache"}); if(!r.ok) throw new Error(u+" → "+r.status);
+  if(!u.endsWith(".gz")) return r.json();
+  const text = await new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).text();
+  return JSON.parse(text);
+}
+
+async function init(){
+  try{
+    META = await getJSON("data/meta.json");
+  }catch(e){
+    $("#app").innerHTML = '<div class="err"><b>The data files could not be loaded.</b> '+esc(e.message)+'<br>Open this page through a web server (double-click <code>open_dashboard.bat</code>) or publish it to GitHub Pages. Opening index.html directly from the folder will not work.</div>';
+    return;
+  }
+  OUT = META.outlets.map(o=>({code:o[0],name:o[1]||o[0],region:o[2]||"Unknown",district:ALIAS[o[3]]||o[3]||"Unknown",zone:o[4]||"Undefined"}));
+  ART = META.articles.map(a=>({no:a[0],name:a[1]||"",cat:a[2]||"Unknown",master:a[3]||"Unknown",std:a[4]}));
+  COMBO = META.combos.map(c=>({master:c[0],cat:c[1]}));
+  const ck = new Map(COMBO.map((c,i)=>[c.master+"\u0001"+c.cat,i]));
+  ARTCOMBO = ART.map(a=>ck.has(a.master+"\u0001"+a.cat)?ck.get(a.master+"\u0001"+a.cat):-1);
+  $("#demoBar").hidden = !META.demo;
+  $("#closingTxt").textContent = "Closing "+fdate(META.closing,true)+" · locked";
+  $("#updatedTxt").textContent = META.demo ? "Demo data" : "Data built "+META.generated;
+  $("#outletList").innerHTML = OUT.map(o=>'<option value="'+esc(o.code+" — "+o.name)+'">').join("");
+  $("#chips").innerHTML = META.openings.map(d=>'<button type="button" class="chip" aria-pressed="false" data-d="'+d+'">'+fdate(d)+'</button>').join("");
+  $("#chips").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(b) setOpening(b.dataset.d);});
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{S.tab=t.dataset.t; S.page=0; S.sort={key:"score",dir:-1}; render();}));
+  ["fRegion","fDistrict","fZone","fMaster","fCat"].forEach(id=>$("#"+id).addEventListener("change",onFilter));
+  $("#fOutlet").addEventListener("change",onFilter); $("#fArt").addEventListener("input",onFilter);
+  $("#reset").addEventListener("click",()=>{S.f={region:"",district:"",zone:"",outlet:"",master:"",cat:"",art:""}; S.page=0; syncFilters(); render();});
+  syncFilters();
+  await setOpening(META.openings[0]);
+}
+async function setOpening(d){
+  S.open=d; S.page=0;
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.d===d));
+  $("#app").classList.add("busy");
+  if(!DATA[d]){ try{ DATA[d]=await getJSON("data/open_"+d+".json.gz"); }catch(e){ $("#app").innerHTML='<div class="err">Could not load data for '+esc(d)+': '+esc(e.message)+'</div>'; return; } }
+  render();
+}
+function onFilter(){
+  const v = id=>$("#"+id).value;
+  const f=S.f; f.region=v("fRegion"); f.district=v("fDistrict"); f.zone=v("fZone"); f.master=v("fMaster"); f.cat=v("fCat"); f.art=v("fArt").trim().toLowerCase();
+  const typed=v("fOutlet").trim(); const code=typed.split(" — ")[0].trim().toUpperCase();
+  f.outlet = OUT.some(o=>o.code.toUpperCase()===code) ? OUT.find(o=>o.code.toUpperCase()===code).code : "";
+  S.page=0; syncFilters(); render();
+}
+function opts(list,sel,all){ return '<option value="">'+all+'</option>'+list.map(x=>'<option'+(x===sel?" selected":"")+' value="'+esc(x)+'">'+esc(x)+'</option>').join(""); }
+const uniq = a => [...new Set(a)].sort((x,y)=>x.localeCompare(y));
+function syncFilters(){
+  const f=S.f;
+  $("#fRegion").innerHTML = opts(uniq(OUT.map(o=>o.region)),f.region,"All divisions");
+  const inR = OUT.filter(o=>!f.region||o.region===f.region);
+  const dl = uniq(inR.map(o=>o.district)); if(f.district&&!dl.includes(f.district)) f.district="";
+  $("#fDistrict").innerHTML = opts(dl,f.district,"All districts");
+  const inD = inR.filter(o=>!f.district||o.district===f.district);
+  const zl = uniq(inD.map(o=>o.zone)); if(f.zone&&!zl.includes(f.zone)) f.zone="";
+  $("#fZone").innerHTML = opts(zl,f.zone,"All zones");
+  $("#fMaster").innerHTML = opts(uniq(COMBO.map(c=>c.master)),f.master,"All masters");
+  const cl = uniq(COMBO.filter(c=>!f.master||c.master===f.master).map(c=>c.cat)); if(f.cat&&!cl.includes(f.cat)) f.cat="";
+  $("#fCat").innerHTML = opts(cl,f.cat,"All categories");
+  const oc = OUT.filter(o=>(!f.region||o.region===f.region)&&(!f.district||o.district===f.district)&&(!f.zone||o.zone===f.zone));
+  if(f.outlet && !oc.some(o=>o.code===f.outlet)) f.outlet="";
+  $("#fOutlet").value = f.outlet ? f.outlet+" — "+OUT.find(o=>o.code===f.outlet).name : ($("#fOutlet").value.includes(" — ")?"":$("#fOutlet").value);
+  $("#fArt").value = f.art;
+}
+
+/* ---------- calculation ---------- */
+function masks(){
+  const f=S.f;
+  const om = new Uint8Array(OUT.length);
+  OUT.forEach((o,i)=>{ om[i] = (!f.region||o.region===f.region)&&(!f.district||o.district===f.district)&&(!f.zone||o.zone===f.zone)&&(!f.outlet||o.code===f.outlet) ? 1:0; });
+  const cm = new Uint8Array(COMBO.length);
+  COMBO.forEach((c,i)=>{ cm[i] = (!f.master||c.master===f.master)&&(!f.cat||c.cat===f.cat) ? 1:0; });
+  return {om,cm};
+}
+function aggregate(d,T){
+  const {om,cm}=masks(); const c=d.cells;
+  const inc = T==="over"?c.oi:c.ui, qty = T==="over"?c.oq:c.uq;
+  const tot={base:0,inc:0,qty:0,val:0,rq:0,sq:0}, reg={}, dist={}, cat={}, outl={};
+  const add=(m,k,i)=>{ const g=m[k]||(m[k]={base:0,inc:0,qty:0,val:0}); g.base+=c.base[i]; g.inc+=inc[i]; g.qty+=qty[i]; if(T==="over") g.val+=c.ov[i]; };
+  for(let i=0;i<c.o.length;i++){
+    const o=c.o[i], k=c.c[i]; if(!om[o]||!cm[k]) continue;
+    tot.base+=c.base[i]; tot.inc+=inc[i]; tot.qty+=qty[i]; tot.val+=c.ov[i]; tot.rq+=c.rq[i]; tot.sq+=c.sq[i];
+    const ot=OUT[o]; add(reg,ot.region,i); add(dist,ot.district,i); add(cat,COMBO[k].cat,i); add(outl,o,i);
+  }
+  return {tot,reg,dist,cat,outl};
+}
+function rowsFor(d,T){
+  const {om,cm}=masks(); const r=d[T], q=S.f.art, out=[];
+  for(let i=0;i<r.o.length;i++){
+    if(!om[r.o[i]]) continue; const a=r.a[i], ci=ARTCOMBO[a]; if(ci>=0 && !cm[ci]) continue;
+    if(q){ const A=ART[a]; if(!(A.no.toLowerCase().includes(q)||A.name.toLowerCase().includes(q))) continue; }
+    out.push(i);
+  }
+  return out;
+}
+
+/* ---------- drawing ---------- */
+const tip=$("#tip");
+function showTip(e,html){ tip.innerHTML=html; tip.style.opacity=1; const w=tip.offsetWidth,h=tip.offsetHeight; let x=e.clientX+14,y=e.clientY+14; if(x+w>innerWidth-8)x=e.clientX-w-14; if(y+h>innerHeight-8)y=e.clientY-h-14; tip.style.left=x+"px"; tip.style.top=y+"px"; }
+function hideTip(){ tip.style.opacity=0; }
+function bind(el,fn){ el.addEventListener("mousemove",e=>showTip(e,fn(el))); el.addEventListener("mouseleave",hideTip); el.addEventListener("focus",()=>{const r=el.getBoundingClientRect(); showTip({clientX:r.left+20,clientY:r.top},fn(el));}); el.addEventListener("blur",hideTip); }
+
+function barList(items,T,kind,selected){
+  if(!items.length) return '<div class="empty">No incidents for this selection.</div>';
+  const max=Math.max(...items.map(x=>x.inc),1);
+  return '<div class="bars">'+items.map((x,i)=>'<button type="button" class="bar'+(selected===x.key?" on":"")+'" data-kind="'+kind+'" data-i="'+i+'">'
+    +'<span class="name">'+esc(x.label)+'</span><span class="track"><span class="fill" style="width:'+(100*x.inc/max)+'%"></span></span>'
+    +'<span class="val"><b>'+nf(x.inc)+'</b> · '+x.rate.toFixed(0)+'%</span></button>').join("")+'</div>';
+}
+function topN(map,labelFn,n){
+  return Object.entries(map).map(([k,g])=>({key:k,label:labelFn(k),inc:g.inc,base:g.base,qty:g.qty,rate:pct(g.inc,g.base)})).filter(x=>x.inc>0).sort((a,b)=>b.inc-a.inc).slice(0,n);
+}
+function ramp(T,v,max){ const r=RAMP[T]; if(max<=0) return r[0]; return r[Math.min(4,Math.floor(5*v/(max*1.0001)))]; }
+
+function render(){
+  if(!DATA[S.open]) return;
+  const d=DATA[S.open], T=S.tab, A=aggregate(d,T), word=T==="over"?"over":"under";
+  document.documentElement.style.setProperty("--accent",T==="over"?"var(--over)":"var(--under)");
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.t===T));
+  $("#tabHelp").textContent=COPY[T].help;
+  const days=Math.round((new Date(META.closing)-new Date(S.open))/864e5)+1;
+  $("#period").innerHTML='Period <b>'+fdate(S.open)+' → '+fdate(META.closing,true)+'</b> · '+days+' days';
+  const t=A.tot, rate=pct(t.inc,t.base);
+  const k4 = T==="over" ? ['Value of over receiving','BDT '+bdt(t.val),'At cost per unit'] : ['Received per unit sold',(t.sq>0?(t.rq/t.sq).toFixed(2):"–")+'×','Units received ÷ units sold'];
+  const accentSoft=T==="over"?"var(--over-soft)":"var(--under-soft)", accentInk=T==="over"?"var(--over-ink)":"var(--under-ink)";
+  document.documentElement.style.setProperty("--accent-soft",accentSoft); document.documentElement.style.setProperty("--accent-ink",accentInk);
+
+  const regs=topN(A.reg,k=>k,8), cats=topN(A.cat,k=>k,10), outs=topN(A.outl,k=>OUT[k].code+" · "+OUT[k].name.replace(/^[A-Z]\d+-/,""),10);
+  let html='<section class="kpis">'
+   +kpi("Incidents",nf(t.inc),"Outlet–article pairs flagged")
+   +kpi("Incident rate",rate.toFixed(1)+"%",nf(t.inc)+" of "+nf(t.base)+" pairs received")
+   +kpi(T==="over"?"Units over received":"Units short",nf(t.qty),"Across flagged incidents")
+   +kpi(k4[0],k4[1],k4[2])+'</section>';
+  html+='<div class="grid"><section class="panel"><h2>Where it happens</h2><p class="sub">Circle size is the number of incidents; shade is the incident rate in that district.</p><div class="mapbox" id="map"></div><div class="legend" id="mapLegend"></div></section>'
+   +'<div class="stack">'
+   +'<section class="panel"><h2>By division</h2><p class="sub">Incidents and incident rate. Click a bar to filter.</p><div id="bReg">'+barList(regs,T,"region",S.f.region)+'</div></section>'
+   +'<section class="panel"><h2>Top categories</h2><p class="sub">Click a bar to filter.</p><div id="bCat">'+barList(cats,T,"cat",S.f.cat)+'</div></section>'
+   +'<section class="panel"><h2>Top outlets</h2><p class="sub">Click a bar to filter.</p><div id="bOut">'+barList(outs,T,"outlet",Object.keys(A.outl).find(k=>OUT[k].code===S.f.outlet))+'</div></section>'
+   +'</div></div>';
+  html+=tableHTML(d,T);
+  $("#app").innerHTML=html;
+  drawMap(A,T); wireBars({region:regs,cat:cats,outlet:outs},T); wireTable(d,T);
+  $("#foot").innerHTML='Opening stock is the stock on the opening date; closing is always the latest date in the data. '+(META.demo?"":'Built '+esc(META.generated)+'.');
+}
+function kpi(k,v,s){ return '<div class="kpi"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s)+'</div></div>'; }
+
+function drawMap(A,T){
+  const dm={}; Object.entries(A.dist).forEach(([k,g])=>{ const n=ALIAS[k]||k; const x=dm[n]||(dm[n]={base:0,inc:0,qty:0}); x.base+=g.base; x.inc+=g.inc; x.qty+=g.qty; });
+  const list=Object.entries(dm).filter(([k])=>COORD[k]).map(([k,g])=>({k,...g,rate:pct(g.inc,g.base)}));
+  const maxInc=Math.max(...list.map(x=>x.inc),1), maxRate=Math.max(...list.map(x=>x.rate),1);
+  const circles=list.sort((a,b)=>b.inc-a.inc).map(x=>{ const [cx,cy]=COORD[x.k]; const r=4+Math.sqrt(x.inc/maxInc)*24;
+    return '<circle tabindex="0" data-k="'+esc(x.k)+'" cx="'+cx+'" cy="'+cy+'" r="'+r.toFixed(1)+'" fill="'+ramp(T,x.rate,maxRate)+'" fill-opacity=".92" stroke="var(--surface)" stroke-width="2"/>'; }).join("");
+  const miss=Object.keys(dm).filter(k=>!COORD[k]);
+  $("#map").innerHTML='<svg viewBox="0 0 500 650" role="img" aria-label="Incidents by district"><path d="'+OUTLINE+'" fill="var(--surface)" stroke="var(--ink-mute)" stroke-width="1.5" stroke-linejoin="round"/>'+circles+'</svg>';
+  document.querySelectorAll("#map circle").forEach(c=>{ const x=list.find(z=>z.k===c.dataset.k);
+    c.addEventListener("mousemove",e=>showTip(e,"<b>"+esc(x.k)+"</b><br>"+nf(x.inc)+" incidents of "+nf(x.base)+" pairs<br>Rate "+x.rate.toFixed(1)+"% · "+nf(x.qty)+" units"));
+    c.addEventListener("mouseleave",hideTip);
+    c.addEventListener("click",()=>{ const o=OUT.find(o=>(ALIAS[o.district]||o.district)===x.k); if(o){ S.f.region=o.region; S.f.district=o.district; S.f.zone=""; S.f.outlet=""; syncFilters(); render(); }});
+  });
+  const steps=RAMP[T].map((c,i)=>'<span class="sw"><i style="background:'+c+'"></i>'+Math.round(maxRate*i/5)+(i<4?"–"+Math.round(maxRate*(i+1)/5):"+")+'%</span>').join("");
+  $("#mapLegend").innerHTML='<span>Rate:</span>'+steps+(miss.length?'<span style="color:var(--ink-mute)">Not on map: '+esc(miss.slice(0,6).join(", "))+(miss.length>6?"…":"")+'</span>':"");
+}
+function wireBars(sets,T){
+  document.querySelectorAll(".bar").forEach(b=>{
+    const x=sets[b.dataset.kind][+b.dataset.i];
+    b.addEventListener("mousemove",e=>showTip(e,"<b>"+esc(x.label)+"</b><br>"+nf(x.inc)+" incidents of "+nf(x.base)+" pairs<br>Rate "+x.rate.toFixed(1)+"% · "+nf(x.qty)+" units"));
+    b.addEventListener("mouseleave",hideTip);
+    b.addEventListener("click",()=>{
+      const k=b.dataset.kind, f=S.f;
+      if(k==="region") f.region = f.region===x.key?"":x.key;
+      if(k==="cat") f.cat = f.cat===x.key?"":x.key;
+      if(k==="outlet") f.outlet = f.outlet===OUT[x.key].code?"":OUT[x.key].code;
+      S.page=0; syncFilters(); render();
+    });
+  });
+}
+
+/* ---------- table ---------- */
+const COLS = {
+  over:[["outlet","Outlet",0],["article","Article",0],["cat","Category",0],["qty","Over qty",1],["score","Score",0],["recv","Received",1],["sales","Sales",1],["inv","Inventory",1],["est","Est. closing",1],["value","Value (BDT)",1],["po","PO",0],["mov","Movement",0]],
+  under:[["outlet","Outlet",0],["article","Article",0],["cat","Category",0],["qty","Short qty",1],["score","Score",0],["recv","Received",1],["sales","Sales",1],["inv","Inventory",1],["req","Required stock",1]]
+};
+function cellVal(d,T,i,key){
+  const r=d[T];
+  if(key==="outlet") return OUT[r.o[i]].code+" "+OUT[r.o[i]].name;
+  if(key==="article") return ART[r.a[i]].no+" "+ART[r.a[i]].name;
+  if(key==="cat") return ART[r.a[i]].cat;
+  return r[key][i];
+}
+function band(s){ return s>2.5?["High","hi"]:s>1?["Medium","mid"]:["Low",""]; }
+function tableHTML(d,T){
+  const idx=rowsFor(d,T), key=S.sort.key, dir=S.sort.dir;
+  idx.sort((a,b)=>{ const x=cellVal(d,T,a,key), y=cellVal(d,T,b,key); return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*dir; });
+  S._idx=idx;
+  const per=20, pages=Math.max(1,Math.ceil(idx.length/per)); if(S.page>=pages) S.page=pages-1;
+  const slice=idx.slice(S.page*per,S.page*per+per), cols=COLS[T], r=d[T];
+  const capped = r.o.length < (T==="over"?d.kpi.over_incidents:d.kpi.under_incidents);
+  let h='<section class="panel"><div class="tbl-head"><div><h2>'+COPY[T].name+' incidents</h2><p class="sub" style="margin-bottom:0">'+nf(idx.length)+' rows match the filters. Click a column heading to sort.</p></div><button class="btn primary" id="csv" type="button">Download CSV</button></div>';
+  h+='<div class="scroll"><table><thead><tr>'+cols.map(c=>'<th class="'+(c[2]?"r":"")+'" data-k="'+c[0]+'">'+c[1]+(key===c[0]?'<span class="ar">'+(dir>0?"▲":"▼")+'</span>':"")+'</th>').join("")+'</tr></thead><tbody>';
+  if(!slice.length) h+='<tr><td colspan="'+cols.length+'" class="empty">No incidents match these filters.</td></tr>';
+  slice.forEach(i=>{
+    const sc=r.score[i], bd=band(sc);
+    h+='<tr><td class="wrapc">'+esc(OUT[r.o[i]].code)+'<span class="small">'+esc(OUT[r.o[i]].name)+'</span></td>'
+     +'<td class="wrapc">'+esc(ART[r.a[i]].no)+'<span class="small">'+esc(ART[r.a[i]].name)+'</span></td>'
+     +'<td class="wrapc">'+esc(ART[r.a[i]].cat)+'<span class="small">'+esc(ART[r.a[i]].master)+'</span></td>'
+     +'<td class="r">'+nf(r.qty[i])+'</td>'
+     +'<td><div class="score"><span class="tr"><b style="width:'+Math.min(100,sc/3*100)+'%"></b></span><span class="num">'+sc.toFixed(2)+'</span><span class="band '+bd[1]+'">'+bd[0]+'</span></div></td>'
+     +'<td class="r">'+nf(r.recv[i])+'</td><td class="r">'+nf(r.sales[i])+'</td><td class="r">'+nf(r.inv[i])+'</td>';
+    if(T==="over") h+='<td class="r">'+nf(r.est[i])+'</td><td class="r">'+nf(r.value[i])+'</td><td>'+esc(r.po[i])+'</td><td>'+esc(r.mov[i])+'</td>';
+    else h+='<td class="r">'+nf(r.req[i])+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div><div class="pager"><button class="btn" id="prev" type="button"'+(S.page===0?" disabled":"")+'>Previous</button><span>Page '+(S.page+1)+' of '+nf(pages)+'</span><button class="btn" id="next" type="button"'+(S.page>=pages-1?" disabled":"")+'>Next</button></div>';
+  if(capped) h+='<p class="note">The table lists the '+nf(r.o.length)+' highest-scoring incidents. The cards, map and charts count all '+nf(T==="over"?d.kpi.over_incidents:d.kpi.under_incidents)+'.</p>';
+  return h+'</section>';
+}
+function wireTable(d,T){
+  document.querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{ const k=th.dataset.k; S.sort = S.sort.key===k?{key:k,dir:-S.sort.dir}:{key:k,dir:(["outlet","article","cat","po","mov"].includes(k)?1:-1)}; S.page=0; render(); }));
+  $("#prev")?.addEventListener("click",()=>{S.page--; render(); $(".tbl-head")?.scrollIntoView({block:"start"});});
+  $("#next")?.addEventListener("click",()=>{S.page++; render(); $(".tbl-head")?.scrollIntoView({block:"start"});});
+  $("#csv")?.addEventListener("click",()=>{
+    const cols=COLS[T], r=d[T];
+    const head=["Outlet code","Outlet name","Division","District","Article","Article name","Master category","Category"].concat(cols.slice(3).map(c=>c[1]));
+    const lines=[head.join(",")];
+    S._idx.forEach(i=>{
+      const o=OUT[r.o[i]], a=ART[r.a[i]];
+      const vals=[o.code,o.name,o.region,o.district,a.no,a.name,a.master,a.cat].concat(cols.slice(3).map(c=>c[0]==="score"?r.score[i]:r[c[0]][i]));
+      lines.push(vals.map(v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"').join(","));
+    });
+    const blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=(T==="over"?"over":"under")+"_receiving_"+S.open+"_to_"+META.closing+".csv"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  });
+}
+init();
+</script>
+</body>
+</html>
