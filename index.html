@@ -160,6 +160,34 @@ details.tv summary{cursor:pointer}
 @media (max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.period{margin-left:0}.status{align-items:flex-start}}
 @media (max-width:640px){.wrap{padding:0 12px}.grid{grid-template-columns:1fr}.top h1{font-size:23px}.controls{position:static}.s1{min-width:120px;max-width:120px;width:120px}.s2{left:120px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* ---- polish: severity colours (same legend as the Power BI report), table, cards ---- */
+:root{--sev-vh:#e5484d;--sev-h:#f08a24;--sev-m:#f2c230;--r:12px;--shadow:0 1px 2px rgba(15,27,51,.04),0 14px 30px -18px rgba(31,79,216,.35)}
+body{background:radial-gradient(1200px 380px at 50% -120px,#dbe7ff 0%,transparent 70%),var(--bg)}
+.panel,.kpi{border-radius:14px;border-color:color-mix(in srgb,var(--line) 70%,transparent)}
+.kpi{border-top-width:4px}
+.sevleg{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft);margin:0 0 8px}
+.sevleg span{display:flex;align-items:center;gap:6px;font-weight:600;color:var(--ink)}
+.sevleg em{font-style:normal;font-weight:400;color:var(--ink-mute)}
+.sevleg i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.sevleg i.vh{background:var(--sev-vh)} .sevleg i.h{background:var(--sev-h)} .sevleg i.m{background:var(--sev-m)}
+.scroll{border-radius:10px;border-color:#c5d3ee}
+th{background:linear-gradient(180deg,#2f50b0,#223f93);color:#fff;border-bottom:0;font-size:12px;letter-spacing:.01em}
+th:hover{color:#cfe0ff}
+th.s1,th.s2{background:linear-gradient(180deg,#2a499f,#1d3884)}
+th .ar{margin-left:4px;opacity:.85}
+tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
+tbody tr:hover td{background:color-mix(in srgb,var(--brand) 11%,var(--surface))}
+td{border-bottom-color:color-mix(in srgb,var(--line) 70%,transparent)}
+tr.sv-vh{--sev:var(--sev-vh)} tr.sv-h{--sev:var(--sev-h)} tr.sv-m{--sev:var(--sev-m)}
+tr[class^=sv-] td.s1{border-left:5px solid var(--sev)}
+tr[class^=sv-] td.ovq{background:color-mix(in srgb,var(--sev) 26%,var(--surface));font-weight:700;color:var(--ink)}
+tr[class^=sv-]:hover td.ovq{background:color-mix(in srgb,var(--sev) 36%,var(--surface))}
+.score .tr{background:color-mix(in srgb,var(--sev) 16%,var(--surface-2))}
+.score .tr b{background:var(--sev)}
+.band,.band.hi,.band.mid{background:color-mix(in srgb,var(--sev) 22%,var(--surface));border:1px solid color-mix(in srgb,var(--sev) 70%,transparent);color:var(--ink);font-weight:600;border-radius:999px;padding:1px 9px}
+td .small{color:var(--ink-mute)}
+.ovhi{color:var(--ink);background:color-mix(in srgb,var(--sev-h) 22%,var(--surface))}
 </style>
 </head>
 <body>
@@ -213,7 +241,7 @@ const COORD = {"Rangpur":[133,100],"Dinajpur":[68,112],"Kurigram":[177,93],"Gaib
 const ALIAS = {"Chittagong":"Chattogram","Cumilla":"Comilla","Jashore":"Jessore","Khagrachhari":"Khagrachari","Bogra":"Bogura","Barisal":"Barishal"};
 const RAMP = {over:["#fbdccb","#f6b393","#ee8a5c","#eb6834","#a8431a"], under:["#d6f1f3","#93d8dd","#4fbcc5","#1a9aa6","#0d6670"]};
 const COPY = {
-  over:{name:"Over receiving", help:"Received more than the outlet can sell before closing. Quantity is the excess over sales plus the standard stock days. The score runs from 0 to 3; above 2.5 is high, above 1 is medium."},
+  over:{name:"Over receiving", help:"Received more than the outlet can sell before closing. Quantity is the excess over sales plus the standard stock days. The score runs from 0 to 3; above 2.5 is very high (red), 1 to 2.5 is high (orange), below 1 is moderate high (yellow)."},
   under:{name:"Under receiving", help:"Stock on hand is below what sales plus the standard stock days require, so the outlet risks running out. Articles with more than 100 standard days are measured against 100 days of average sales. The score runs from 0 to 3."}
 };
 const $ = s => document.querySelector(s);
@@ -247,7 +275,6 @@ async function init(){
   const ck = new Map(COMBO.map((c,i)=>[c.master+"\u0001"+c.cat,i]));
   ARTCOMBO = ART.map(a=>ck.has(a.master+"\u0001"+a.cat)?ck.get(a.master+"\u0001"+a.cat):-1);
   MASTERS = META.masters || [];
-  if(META.daily_file){ getJSON("data/"+META.daily_file).then(x=>{ DAILY=x; renderDay(); }).catch(()=>{ DAILY=null; renderDay(); }); }
   $("#demoBar").hidden = !META.demo;
   $("#closingTxt").textContent = "Closing "+fdate(META.closing,true)+" · locked";
   $("#updatedTxt").textContent = META.demo ? "Demo data" : "Data built "+META.generated;
@@ -364,7 +391,6 @@ function render(){
    +kpi(T==="over"?"Units over received":"Units short",nf(t.qty),"Across flagged incidents")
    +kpi(k4[0],k4[1],k4[2])+'</section>';
   html+=tableHTML(d,T);
-  html+='<section class="panel" id="dayBox"></section>';
   if(T==="over") html+='<section class="panel" id="poBox"></section>';
   html+='<div class="grid"><section class="panel"><h2>Where it happens</h2><p class="sub">Size = incidents, shade = incident rate.</p><div class="mapbox" id="map"></div><div class="legend" id="mapLegend"></div></section>'
    +'<section class="panel"><h2>By division</h2><p class="sub">Incidents · rate. Click to filter.</p><div id="bReg">'+barList(regs,T,"region",S.f.region)+'</div></section>'
@@ -372,7 +398,7 @@ function render(){
    +'<section class="panel"><h2>Top outlets</h2><p class="sub">Click to filter.</p><div id="bOut">'+barList(outs,T,"outlet",Object.keys(A.outl).find(k=>OUT[k].code===S.f.outlet))+'</div></section>'
    +'</div>';
   $("#app").innerHTML=html;
-  drawMap(A,T); wireBars({region:regs,cat:cats,outlet:outs},T); wireTable(d,T); renderDay(); renderPO();
+  drawMap(A,T); wireBars({region:regs,cat:cats,outlet:outs},T); wireTable(d,T); renderPO();
   $("#foot").innerHTML='Opening stock is the stock on the opening date; closing is always the latest date in the data. '+(META.demo?"":'Built '+esc(META.generated)+'.');
 }
 function kpi(k,v,s){ return '<div class="kpi"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s)+'</div></div>'; }
@@ -410,18 +436,32 @@ function wireBars(sets,T){
 
 /* ---------- table ---------- */
 const COLS = {
-  over:[["outlet","Outlet",0],["article","Article",0],["cat","Category",0],["qty","Over qty",1],["score","Score",0],["recv","Received",1],["sales","Sales",1],["inv","Inventory",1],["est","Est. closing",1],["value","Value (BDT)",1],["po","PO",0],["mov","Movement",0]],
-  under:[["outlet","Outlet",0],["article","Article",0],["cat","Category",0],["qty","Short qty",1],["score","Score",0],["recv","Received",1],["sales","Sales",1],["inv","Inventory",1],["req","Required stock",1]]
+  over:[["outlet","Outlet",0],["article","Article",0],["cat","Category",0],["qty","Over qty",1],["value","Value (BDT)",1],["score","Score",0],["open","Opening stock",1],["recv","Receiving qty",1],["inv","Total inventory",1],["sales","Sales qty",1],["std","Std. stock days",1],["curd","Current stock day",1],["sys","Current stock in system",1],["close","Closing stock on receiving",1],["po","PO",0],["mov","Movement",0],["days","Received on (over qty)",0]],
+  under:[["outlet","Outlet",0],["article","Article",0],["cat","Category",0],["qty","Short qty",1],["score","Score",0],["open","Opening stock",1],["recv","Receiving qty",1],["inv","Total inventory",1],["sales","Sales qty",1],["std","Std. stock days",1],["curd","Current stock day",1],["sys","Current stock in system",1],["req","Required stock",1]]
 };
+function vv(r,key,i){ if(key==="std") return ART[r.a[i]].std; if(key==="close") return (r.inv[i]==null||r.sales[i]==null)?null:r.inv[i]-r.sales[i]; return r[key]?r[key][i]:null; }
 function cellVal(d,T,i,key){
   const r=d[T];
   if(key==="outlet") return OUT[r.o[i]].code+" "+OUT[r.o[i]].name;
   if(key==="article") return ART[r.a[i]].no+" "+ART[r.a[i]].name;
   if(key==="cat") return ART[r.a[i]].cat;
-  return r[key][i];
+  if(key==="days") return "";
+  const v=vv(r,key,i); return v==null?-1e12:v;
 }
-function band(s){ return s>2.5?["High","hi"]:s>1?["Medium","mid"]:["Low",""]; }
+const DM={};
+function daysOf(d,o,a){
+  const P=POD[d]; if(!P||P.err) return null;
+  if(!DM[d]){ const m=new Map(); for(let i=0;i<P.o.length;i++){ if(!(P.ov[i]>0)) continue; const k=P.o[i]+"|"+P.a[i]; if(!m.has(k)) m.set(k,[]); m.get(k).push([P.d[i],P.ov[i]]); } m.forEach(v=>v.sort((x,y)=>y[0]-x[0])); DM[d]=m; }
+  return DM[d].get(o+"|"+a)||[];
+}
+function daysTxt(d,o,a){
+  const v=daysOf(d,o,a); if(v===null) return "…"; if(!v.length) return "–";
+  const f=x=>fday(offMs(x[0]),{day:"numeric",month:"short"})+" ("+nf(x[1])+")";
+  return v.slice(0,6).map(f).join(", ")+(v.length>6?" +"+(v.length-6)+" more":"");
+}
+function band(s){ return s>2.5?["Very high","vh"]:s>1?["High","h"]:["Moderate","m"]; }
 function tableHTML(d,T){
+  if(T==="over") loadPO(S.open);
   const idx=rowsFor(d,T), key=S.sort.key, dir=S.sort.dir;
   idx.sort((a,b)=>{ const x=cellVal(d,T,a,key), y=cellVal(d,T,b,key); return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*dir; });
   S._idx=idx;
@@ -429,18 +469,19 @@ function tableHTML(d,T){
   const slice=idx.slice(S.page*per,S.page*per+per), cols=COLS[T], r=d[T];
   const capped = r.o.length < (T==="over"?d.kpi.over_incidents:d.kpi.under_incidents);
   let h='<section class="panel"><div class="tbl-head"><div><h2>'+COPY[T].name+' incidents</h2><p class="sub" style="margin-bottom:0">'+nf(idx.length)+' rows match the filters. Click a heading to sort; the table scrolls inside its box.</p></div><button class="btn primary" id="csv" type="button">Download CSV</button></div>';
+  h+='<div class="sevleg"><span><i class="vh"></i>Very high <em>score &gt; 2.5</em></span><span><i class="h"></i>High <em>score 1 – 2.5</em></span><span><i class="m"></i>Moderate high <em>score 0 – 1</em></span></div>';
   h+='<div class="scroll"><table><thead><tr>'+cols.map((c,ci)=>'<th class="'+(c[2]?"r ":"")+(ci===0?"s1":ci===1?"s2":"")+'" data-k="'+c[0]+'">'+c[1]+(key===c[0]?'<span class="ar">'+(dir>0?"▲":"▼")+'</span>':"")+'</th>').join("")+'</tr></thead><tbody>';
   if(!slice.length) h+='<tr><td colspan="'+cols.length+'" class="empty">No incidents match these filters.</td></tr>';
   slice.forEach(i=>{
     const sc=r.score[i], bd=band(sc);
-    h+='<tr><td class="wrapc s1">'+esc(OUT[r.o[i]].code)+'<span class="small">'+esc(OUT[r.o[i]].name)+'</span></td>'
+    const scoreTd='<td><div class="score"><span class="tr"><b style="width:'+Math.min(100,sc/3*100)+'%"></b></span><span class="num">'+sc.toFixed(2)+'</span><span class="band">'+bd[0]+'</span></div></td>';
+    const stock='<td class="r">'+nf(r.open[i])+'</td><td class="r">'+nf(r.recv[i])+'</td><td class="r">'+nf(r.inv[i])+'</td><td class="r">'+nf(r.sales[i])+'</td>'
+      +'<td class="r">'+(ART[r.a[i]].std==null?"–":nf(ART[r.a[i]].std))+'</td><td class="r">'+(r.curd&&r.curd[i]!=null?r.curd[i].toFixed(2):"–")+'</td><td class="r">'+(r.sys&&r.sys[i]!=null?nf(r.sys[i]):"–")+'</td>';
+    h+='<tr class="sv-'+bd[1]+'"><td class="wrapc s1">'+esc(OUT[r.o[i]].code)+'<span class="small">'+esc(OUT[r.o[i]].name)+'</span></td>'
      +'<td class="wrapc s2">'+esc(ART[r.a[i]].no)+'<span class="small">'+esc(ART[r.a[i]].name)+'</span></td>'
-     +'<td style="min-width:150px">'+esc(ART[r.a[i]].cat)+'<span class="small">'+esc(ART[r.a[i]].master)+'</span></td>'
-     +'<td class="r">'+nf(r.qty[i])+'</td>'
-     +'<td><div class="score"><span class="tr"><b style="width:'+Math.min(100,sc/3*100)+'%"></b></span><span class="num">'+sc.toFixed(2)+'</span><span class="band '+bd[1]+'">'+bd[0]+'</span></div></td>'
-     +'<td class="r">'+nf(r.recv[i])+'</td><td class="r">'+nf(r.sales[i])+'</td><td class="r">'+nf(r.inv[i])+'</td>';
-    if(T==="over") h+='<td class="r">'+nf(r.est[i])+'</td><td class="r">'+nf(r.value[i])+'</td><td>'+esc(r.po[i])+'</td><td>'+esc(r.mov[i])+'</td>';
-    else h+='<td class="r">'+nf(r.req[i])+'</td>';
+     +'<td style="min-width:150px">'+esc(ART[r.a[i]].cat)+'<span class="small">'+esc(ART[r.a[i]].master)+'</span></td>';
+    if(T==="over") h+='<td class="r ovq">'+nf(r.qty[i])+'</td><td class="r">'+nf(r.value[i])+'</td>'+scoreTd+stock+'<td class="r">'+nf(vv(r,"close",i))+'</td><td>'+esc(r.po[i])+'</td><td>'+esc(r.mov[i])+'</td><td style="min-width:190px">'+esc(daysTxt(S.open,r.o[i],r.a[i]))+'</td>';
+    else h+='<td class="r ovq">'+nf(r.qty[i])+'</td>'+scoreTd+stock+'<td class="r">'+nf(r.req[i])+'</td>';
     h+='</tr>';
   });
   h+='</tbody></table></div><div class="pager"><button class="btn" id="prev" type="button"'+(S.page===0?" disabled":"")+'>Previous</button><span>Page '+(S.page+1)+' of '+nf(pages)+'</span><button class="btn" id="next" type="button"'+(S.page>=pages-1?" disabled":"")+'>Next</button></div>';
@@ -457,7 +498,7 @@ function wireTable(d,T){
     const lines=[head.join(",")];
     S._idx.forEach(i=>{
       const o=OUT[r.o[i]], a=ART[r.a[i]];
-      const vals=[o.code,o.name,o.region,o.district,a.no,a.name,a.master,a.cat].concat(cols.slice(3).map(c=>c[0]==="score"?r.score[i]:r[c[0]][i]));
+      const vals=[o.code,o.name,o.region,o.district,a.no,a.name,a.master,a.cat].concat(cols.slice(3).map(c=>c[0]==="score"?r.score[i]:c[0]==="days"?(daysOf(S.open,r.o[i],r.a[i])||[]).map(x=>new Date(offMs(x[0])).toISOString().slice(0,10)+":"+x[1]).join("; "):vv(r,c[0],i)));
       lines.push(vals.map(v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"').join(","));
     });
     const blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
@@ -471,57 +512,19 @@ const offMs = o => utcMs(META.day0)+o*864e5;
 const offOf = s => Math.round((utcMs(s)-utcMs(META.day0))/864e5);
 const kfmt = v => v>=1e6 ? +(v/1e6).toFixed(2)+"M" : v>=1e3 ? +(v/1e3).toFixed(1)+"K" : String(Math.round(v));
 function niceMax(v){ if(v<=0) return 10; const p=Math.pow(10,Math.floor(Math.log10(v))); const m=v/p; return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p; }
-function renderDay(){
-  const box=$("#dayBox"); if(!box||!DATA[S.open]) return;
-  const d=DATA[S.open], T=S.tab, f=S.f;
-  const head='<div class="tbl-head"><div><h2>Day by day</h2><p class="sub" style="margin-bottom:0">Quantity sold and received each day'+(T==="over"?", and the part of it that was over received":"")+'. Division, district, zone, outlet and master category filters apply; the category and article filters do not.</p></div></div>';
-  if(!DAILY||!META.day0){ box.innerHTML=head+'<div class="empty">Day-wise data is not in the data folder yet. Run update_dashboard.bat to build it.</div>'; return; }
-  const f0=offOf(S.open), f1=offOf(META.closing), n=f1-f0+1;
-  const {om}=masks(); const mm=new Uint8Array(MASTERS.length); MASTERS.forEach((m,i)=>{ mm[i]=(!f.master||m===f.master)?1:0; });
-  const sales=new Float64Array(n), recv=new Float64Array(n), over=new Float64Array(n);
-  for(let i=0;i<DAILY.o.length;i++){ const x=DAILY.d[i]-f0; if(x<0||x>=n||!om[DAILY.o[i]]||!mm[DAILY.m[i]]) continue; sales[x]+=DAILY.sq[i]; recv[x]+=DAILY.rq[i]; }
-  if(T==="over"&&d.oday){ const od=d.oday; for(let i=0;i<od.o.length;i++){ const x=od.d[i]-f0; if(x<0||x>=n||!om[od.o[i]]||!mm[od.m[i]]) continue; over[x]+=od.q[i]; } }
-  const ymax=niceMax(Math.max(...sales,...recv,...(T==="over"?over:[0])));
-  const W=Math.max(620,Math.round(box.clientWidth-30)),H=225,L=46,R=8,TP=8,B=44, step=(W-L-R)/n, X=i=>L+(i+.5)*step, Y=v=>TP+(H-TP-B)*(1-v/ymax);
-  let g='';
-  for(let k=0;k<=4;k++){ const v=ymax*k/4, y=Y(v); g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width="1"'+(k?' stroke-dasharray="3 4"':'')+'/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="11" fill="var(--ink-mute)">'+kfmt(v)+'</text>'; }
-  const dow=["Su","Mo","Tu","We","Th","Fr","Sa"], mon=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], every=step<15?2:1;
-  for(let i=0;i<n;i++){ const dt=new Date(offMs(f0+i)), wd=dt.getUTCDay(), dom=dt.getUTCDate();
-    if(i%every===0) g+='<text x="'+X(i)+'" y="'+(H-28)+'" text-anchor="middle" font-size="10.5" fill="var(--ink-soft)" font-weight="'+(wd===0?700:400)+'">'+dom+'</text><text x="'+X(i)+'" y="'+(H-17)+'" text-anchor="middle" font-size="9.5" fill="var(--ink-mute)">'+dow[wd]+'</text>';
-    if(i===0||dom===1) g+='<text x="'+X(i)+'" y="'+(H-5)+'" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">'+mon[dt.getUTCMonth()]+'</text>'; }
-  if(T==="over"){ const bw=Math.max(3,step*.55); for(let i=0;i<n;i++) if(over[i]>0) g+='<rect x="'+(X(i)-bw/2)+'" y="'+Y(over[i])+'" width="'+bw+'" height="'+Math.max(1,Y(0)-Y(over[i]))+'" rx="2" fill="var(--over)" fill-opacity=".9"/>'; }
-  const line=(arr,col)=>'<path d="'+Array.from(arr,(v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join("")+'" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
-  g+=line(recv,"var(--ink)")+line(sales,"var(--sold)");
-  g+='<line id="dxh" x1="0" x2="0" y1="'+TP+'" y2="'+(H-B)+'" stroke="var(--ink-mute)" stroke-width="1" visibility="hidden"/><circle id="dsr" r="4.5" fill="var(--ink)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/><circle id="dss" r="4.5" fill="var(--sold)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>';
-  const leg='<div class="dleg"><span><i style="border-color:var(--sold)"></i>Sold</span><span><i style="border-color:var(--ink)"></i>Received</span>'+(T==="over"?'<span><i class="bx" style="background:var(--over)"></i>Over received</span>':'')+'</div>';
-  let rows='';
-  for(let i=0;i<n;i++) rows+='<tr><td>'+fday(offMs(f0+i),{weekday:"short",day:"numeric",month:"short"})+'</td><td class="r">'+nf(sales[i])+'</td><td class="r">'+nf(recv[i])+'</td>'+(T==="over"?'<td class="r">'+nf(over[i])+'</td>':'')+'</tr>';
-  box.innerHTML=head+leg+'<svg class="dchart" id="dsvg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Daily sold, received'+(T==="over"?" and over received":"")+' quantity">'+g+'</svg>'
-    +'<p class="note">'+(T==="over"?'Over received per day counts the excess against the latest receipts first, because the stock that arrived last is the stock left over. ':'')+'Sold and received cover all articles of the selected outlets.</p>'
-    +'<details class="tv"><summary>Show the daily numbers as a table</summary><div class="scroll sm"><table><thead><tr><th>Day</th><th class="r">Sold</th><th class="r">Received</th>'+(T==="over"?'<th class="r">Over received</th>':'')+'</tr></thead><tbody>'+rows+'</tbody></table></div></details>';
-  const svg=$("#dsvg"), xh=$("#dxh"), dr=$("#dsr"), ds=$("#dss");
-  svg.addEventListener("mousemove",e=>{
-    const r=svg.getBoundingClientRect(), px=(e.clientX-r.left)/r.width*W, i=Math.floor((px-L)/step);
-    if(i<0||i>=n){ hideTip(); xh.setAttribute("visibility","hidden"); dr.setAttribute("visibility","hidden"); ds.setAttribute("visibility","hidden"); return; }
-    xh.setAttribute("x1",X(i)); xh.setAttribute("x2",X(i)); xh.setAttribute("visibility","visible");
-    dr.setAttribute("cx",X(i)); dr.setAttribute("cy",Y(recv[i])); dr.setAttribute("visibility","visible");
-    ds.setAttribute("cx",X(i)); ds.setAttribute("cy",Y(sales[i])); ds.setAttribute("visibility","visible");
-    showTip(e,"<b>"+fday(offMs(f0+i),{weekday:"short",day:"numeric",month:"short",year:"numeric"})+"</b><br>Sold "+nf(sales[i])+"<br>Received "+nf(recv[i])+(T==="over"?"<br>Over received "+nf(over[i]):""));
-  });
-  svg.addEventListener("mouseleave",()=>{ hideTip(); xh.setAttribute("visibility","hidden"); dr.setAttribute("visibility","hidden"); ds.setAttribute("visibility","hidden"); });
-}
+function renderDay(){}
 
 /* ---------- PO detail table (over receiving) ---------- */
 async function loadPO(d){
   if(POD[d]||POL[d]) return; POL[d]=1;
   try{ POD[d]=await getJSON("data/po_"+d+".json.gz"); }catch(e){ POD[d]={err:e.message}; }
-  if(S.open===d && S.tab==="over") renderPO();
+  if(S.open===d && S.tab==="over") render();
 }
-function poRows(P){
-  const {om,cm}=masks(); const f=S.f, q=f.art, pq=S.po.q.trim().toLowerCase(), out=[];
+function poRows(P,forChart){
+  const {om,cm}=masks(); const f=S.f, q=f.art, pq=forChart?"":S.po.q.trim().toLowerCase(), out=[];
   for(let i=0;i<P.o.length;i++){
     if(!om[P.o[i]]) continue; const a=P.a[i], ci=ARTCOMBO[a]; if(ci>=0&&!cm[ci]) continue;
-    if(S.po.only && !(P.ov[i]>0)) continue;
+    if(!forChart && S.po.only && !(P.ov[i]>0)) continue;
     if(q){ const A=ART[a]; if(!(A.no.toLowerCase().includes(q)||A.name.toLowerCase().includes(q))) continue; }
     if(pq && !String(P.lists.po[P.po[i]]).toLowerCase().includes(pq)) continue;
     out.push(i);
@@ -540,7 +543,7 @@ function poVal(P,i,k){
 function poDate(o,long){ return o==null?"":fday(offMs(o),{weekday:"short",day:"numeric",month:"short",year:"numeric"}); }
 function renderPO(){
   const box=$("#poBox"); if(!box||S.tab!=="over"||!DATA[S.open]) return;
-  const head=(extra)=>'<div class="tbl-head"><div><h2>PO detail — which day was it received?</h2><p class="sub" style="margin-bottom:0">Every receipt line of the over-receiving incidents in the table above. Over qty is the part of the line counted as excess (latest receipts first).</p></div>'+(extra||"")+'</div>';
+  const head=(extra)=>'<div class="tbl-head"><div><h2>Daily receiving — outlet, article, PO and movement</h2><p class="sub" style="margin-bottom:0">One line per receiving day for each over-receiving incident in the table above (top 150,000 incidents). Over qty is the part of the line counted as excess, latest receipts first.</p></div>'+(extra||"")+'</div>';
   const P=POD[S.open];
   if(!P){ box.innerHTML=head()+'<div class="loading">Loading PO lines…</div>'; loadPO(S.open); return; }
   if(P.err){ box.innerHTML=head()+'<div class="empty">PO lines are not in the data folder yet. Run update_dashboard.bat to build them.</div>'; return; }
@@ -576,7 +579,6 @@ function renderPO(){
   });
 }
 
-let _rz; addEventListener('resize',()=>{ clearTimeout(_rz); _rz=setTimeout(()=>{ const b=$('#dayBox'); if(b&&b.clientWidth!==b._w){ b._w=b.clientWidth; renderDay(); } },250); });
 init();
 </script>
 </body>
