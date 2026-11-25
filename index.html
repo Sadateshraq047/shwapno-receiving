@@ -188,6 +188,42 @@ tr[class^=sv-]:hover td.ovq{background:color-mix(in srgb,var(--sev) 36%,var(--su
 .band,.band.hi,.band.mid{background:color-mix(in srgb,var(--sev) 22%,var(--surface));border:1px solid color-mix(in srgb,var(--sev) 70%,transparent);color:var(--ink);font-weight:600;border-radius:999px;padding:1px 9px}
 td .small{color:var(--ink-mute)}
 .ovhi{color:var(--ink);background:color-mix(in srgb,var(--sev-h) 22%,var(--surface))}
+
+/* ---- multi-select filters, selection and movement note ---- */
+.mshost{display:contents}
+.ms{position:relative}
+.ms-btn{height:30px;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:0 8px;width:100%;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;text-align:left;color:var(--ink)}
+.ms-btn:hover{border-color:var(--ink-mute)}
+.ms-btn .ms-val{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms.on .ms-btn{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 9%,var(--surface));font-weight:600}
+.ms.off .ms-btn{opacity:.5;cursor:not-allowed}
+.ms-pop{position:absolute;top:calc(100% + 4px);left:0;z-index:70;min-width:250px;max-width:340px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 18px 40px -16px rgba(15,27,51,.45);padding:8px}
+.ms-pop[hidden]{display:none}
+.ms-q{height:30px;border:1px solid var(--line);border-radius:6px;padding:0 8px;width:100%;font-size:13px;background:var(--surface);color:var(--ink)}
+.ms-act{display:flex;gap:6px;margin:6px 0 4px}
+.ms-act button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer;color:var(--ink)}
+.ms-act button:hover{border-color:var(--brand);color:var(--brand)}
+.ms-list{max-height:260px;overflow:auto}
+.ms-it{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;cursor:pointer;font-size:13px}
+.ms-it:hover{background:var(--surface-2)}
+.f .ms-it input[type=checkbox]{width:16px;height:16px;padding:0;margin:0;flex:none;accent-color:var(--brand);border:0}
+.ms-it span{flex:1;min-width:0}
+.ms-more{padding:6px;font-size:12px;color:var(--ink-mute)}
+.sevb{display:flex;align-items:center;gap:6px;border:1px solid transparent;background:none;border-radius:999px;padding:2px 10px 2px 6px;cursor:pointer;font:inherit;font-weight:600;color:var(--ink);font-size:12px}
+.sevb em{font-style:normal;font-weight:400;color:var(--ink-mute)}
+.sevb:hover{border-color:var(--line)}
+.sevb.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 10%,var(--surface))}
+.sevb i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.sevb i.vh{background:var(--sev-vh)} .sevb i.h{background:var(--sev-h)} .sevb i.m{background:var(--sev-m)}
+.sevleg{align-items:center}
+.sevtip{font-style:normal;font-size:11.5px;color:var(--ink-mute);margin-left:auto}
+.selbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;margin:0 0 8px;min-height:30px}
+.selhint{color:var(--ink-mute)}
+.selchip{background:color-mix(in srgb,var(--brand) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 45%,transparent);border-radius:999px;padding:3px 12px;color:var(--ink)}
+tbody tr[data-i]{cursor:pointer}
+tbody tr.sel td:not(.ovq){background:color-mix(in srgb,var(--brand) 17%,var(--surface))!important}
+tbody tr.sel td{border-bottom:2px solid var(--brand)}
+.mvnote{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:color-mix(in srgb,var(--sev-m) 22%,var(--surface));border:1px solid color-mix(in srgb,var(--sev-m) 70%,transparent);border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -213,13 +249,9 @@ td .small{color:var(--ink-mute)}
     <span class="period" id="period"></span>
   </div>
   <div class="row-filters">
-    <div class="f"><label for="fRegion">Division</label><select id="fRegion"></select></div>
-    <div class="f"><label for="fDistrict">District</label><select id="fDistrict"></select></div>
-    <div class="f"><label for="fZone">Zone</label><select id="fZone"></select></div>
-    <div class="f"><label for="fOutlet">Outlet</label><input id="fOutlet" list="outletList" placeholder="Code or name" autocomplete="off"><datalist id="outletList"></datalist></div>
-    <div class="f"><label for="fMaster">Master category</label><select id="fMaster"></select></div>
-    <div class="f"><label for="fCat">Category</label><select id="fCat"></select></div>
-    <div class="f"><label for="fArt">Article (table only)</label><input id="fArt" placeholder="Code or name" autocomplete="off"></div>
+    <span id="msHost" class="mshost"></span>
+    <div class="f"><label for="fArt">Article search</label><input id="fArt" placeholder="e.g. 2400818, rice" autocomplete="off"></div>
+    <div class="f"><label for="fPo">PO number search</label><input id="fPo" placeholder="e.g. 4500012, 4500013" autocomplete="off"></div>
     <button class="btn" id="reset" type="button">Reset filters</button>
   </div>
 </div></div>
@@ -251,9 +283,13 @@ const pct = (a,b) => b>0 ? (100*a/b) : 0;
 const esc = s => String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fdate = (s,y) => new Date(s+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",...(y?{year:"numeric"}:{})});
 
-let META, DATA = {}, S = {open:null, tab:"over", f:{region:"",district:"",zone:"",outlet:"",master:"",cat:"",art:""}, sort:{key:"score",dir:-1}, page:0, po:{sort:{key:"ov",dir:-1}, page:0, only:true, q:""}};
-let POD = {}, POL = {}, DAILY = null, MASTERS = [];
+let META, DATA = {}, S = {open:null, tab:"over",
+  f:{region:new Set(),district:new Set(),zone:new Set(),outlet:new Set(),master:new Set(),cat:new Set(),art:[],po:[],sev:new Set()},
+  mov:new Set(), sort:{key:"score",dir:-1}, page:0, pair:null, po:{sort:{key:"ov",dir:-1}, page:0, only:true}};
+let POD = {}, POL = {}, MASTERS = [], ALLMOV = [], DEFSET = new Set();
 let OUT=[], ART=[], COMBO=[], ARTCOMBO=[];
+const has = (set,v) => set.size===0 || set.has(v);
+const uniq = a => [...new Set(a)].sort((x,y)=>x.localeCompare(y));
 
 async function getJSON(u){
   const r = await fetch(u,{cache:"no-cache"}); if(!r.ok) throw new Error(u+" → "+r.status);
@@ -275,79 +311,174 @@ async function init(){
   const ck = new Map(COMBO.map((c,i)=>[c.master+"\u0001"+c.cat,i]));
   ARTCOMBO = ART.map(a=>ck.has(a.master+"\u0001"+a.cat)?ck.get(a.master+"\u0001"+a.cat):-1);
   MASTERS = META.masters || [];
+  ALLMOV = (META.movements||[]).map(m=>[String(m[0]),m[1]]);
+  const dm = (META.default_movements||[]).map(String);
+  DEFSET = new Set(ALLMOV.map(m=>m[0]).filter(c=>!dm.length||dm.includes(c)));
+  S.mov = new Set(DEFSET);
   $("#demoBar").hidden = !META.demo;
   $("#closingTxt").textContent = "Closing "+fdate(META.closing,true)+" · locked";
   $("#updatedTxt").textContent = META.demo ? "Demo data" : "Data built "+META.generated;
-  $("#outletList").innerHTML = OUT.map(o=>'<option value="'+esc(o.code+" — "+o.name)+'">').join("");
   $("#chips").innerHTML = META.openings.map(d=>'<button type="button" class="chip" aria-pressed="false" data-d="'+d+'">'+fdate(d)+'</button>').join("");
   $("#chips").addEventListener("click",e=>{const b=e.target.closest(".chip"); if(b) setOpening(b.dataset.d);});
-  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{S.tab=t.dataset.t; S.page=0; S.po.page=0; S.sort={key:"score",dir:-1}; render();}));
-  ["fRegion","fDistrict","fZone","fMaster","fCat"].forEach(id=>$("#"+id).addEventListener("change",onFilter));
-  $("#fOutlet").addEventListener("change",onFilter); $("#fArt").addEventListener("input",onFilter);
-  $("#reset").addEventListener("click",()=>{S.f={region:"",district:"",zone:"",outlet:"",master:"",cat:"",art:""}; S.page=0; syncFilters(); render();});
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{S.tab=t.dataset.t; S.page=0; S.pair=null; S.sort={key:"score",dir:-1}; render();}));
+  buildMS();
+  let tm; const typed=(id,key)=>$("#"+id).addEventListener("input",e=>{ clearTimeout(tm); tm=setTimeout(()=>{ S.f[key]=terms(e.target.value); S.page=0; S.po.page=0; render(); },250); });
+  typed("fArt","art"); typed("fPo","po");
+  $("#reset").addEventListener("click",()=>{
+    Object.keys(S.f).forEach(k=>{ if(S.f[k] instanceof Set) S.f[k].clear(); else S.f[k]=[]; });
+    S.mov=new Set(DEFSET); S.pair=null; S.page=0; S.po.page=0; $("#fArt").value=""; $("#fPo").value=""; syncFilters(); render();
+  });
   syncFilters();
   await setOpening(META.openings[0]);
 }
 async function setOpening(d){
-  S.open=d; S.page=0; S.po.page=0;
+  S.open=d; S.page=0; S.po.page=0; S.pair=null;
   document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.d===d));
   $("#app").classList.add("busy");
   if(!DATA[d]){ try{ DATA[d]=await getJSON("data/open_"+d+".json.gz"); }catch(e){ $("#app").innerHTML='<div class="err">Could not load data for '+esc(d)+': '+esc(e.message)+'</div>'; return; } }
   render();
 }
-function onFilter(){
-  const v = id=>$("#"+id).value;
-  const f=S.f; f.region=v("fRegion"); f.district=v("fDistrict"); f.zone=v("fZone"); f.master=v("fMaster"); f.cat=v("fCat"); f.art=v("fArt").trim().toLowerCase();
-  const typed=v("fOutlet").trim(); const code=typed.split(" — ")[0].trim().toUpperCase();
-  f.outlet = OUT.some(o=>o.code.toUpperCase()===code) ? OUT.find(o=>o.code.toUpperCase()===code).code : "";
-  S.page=0; syncFilters(); render();
+
+/* ---------- filters: multi-select dropdowns + multi-term searches ---------- */
+function terms(str){
+  const out=[];
+  String(str).split(/[,;\n]+/).forEach(t=>{ t=t.trim().toLowerCase(); if(!t) return;
+    const parts=t.split(/\s+/);
+    if(parts.length>1 && parts.every(p=>/^[a-z0-9._-]+$/.test(p)&&/\d/.test(p))) out.push(...parts); else out.push(t); });
+  return out;
 }
-function opts(list,sel,all){ return '<option value="">'+all+'</option>'+list.map(x=>'<option'+(x===sel?" selected":"")+' value="'+esc(x)+'">'+esc(x)+'</option>').join(""); }
-const uniq = a => [...new Set(a)].sort((x,y)=>x.localeCompare(y));
-function syncFilters(){
-  const f=S.f;
-  $("#fRegion").innerHTML = opts(uniq(OUT.map(o=>o.region)),f.region,"All divisions");
-  const inR = OUT.filter(o=>!f.region||o.region===f.region);
-  const dl = uniq(inR.map(o=>o.district)); if(f.district&&!dl.includes(f.district)) f.district="";
-  $("#fDistrict").innerHTML = opts(dl,f.district,"All districts");
-  const inD = inR.filter(o=>!f.district||o.district===f.district);
-  const zl = uniq(inD.map(o=>o.zone)); if(f.zone&&!zl.includes(f.zone)) f.zone="";
-  $("#fZone").innerHTML = opts(zl,f.zone,"All zones");
-  $("#fMaster").innerHTML = opts(uniq(COMBO.map(c=>c.master)),f.master,"All masters");
-  const cl = uniq(COMBO.filter(c=>!f.master||c.master===f.master).map(c=>c.cat)); if(f.cat&&!cl.includes(f.cat)) f.cat="";
-  $("#fCat").innerHTML = opts(cl,f.cat,"All categories");
-  const oc = OUT.filter(o=>(!f.region||o.region===f.region)&&(!f.district||o.district===f.district)&&(!f.zone||o.zone===f.zone));
-  if(f.outlet && !oc.some(o=>o.code===f.outlet)) f.outlet="";
-  $("#fOutlet").value = f.outlet ? f.outlet+" — "+OUT.find(o=>o.code===f.outlet).name : ($("#fOutlet").value.includes(" — ")?"":$("#fOutlet").value);
-  $("#fArt").value = f.art;
+const MSDEF=[{k:"region",lab:"Division"},{k:"district",lab:"District"},{k:"zone",lab:"Zone"},{k:"outlet",lab:"Outlet"},{k:"master",lab:"Master category"},{k:"cat",lab:"Category"},{k:"mov",lab:"Movement"}];
+const msSet = k => k==="mov" ? S.mov : S.f[k];
+let MSOPT = {};
+function isDefaultMov(){ if(S.mov.size!==DEFSET.size) return false; for(const m of S.mov) if(!DEFSET.has(m)) return false; return true; }
+function buildMS(){
+  const host=$("#msHost");
+  host.innerHTML = MSDEF.map(m=>'<div class="f ms" data-k="'+m.k+'"><label>'+m.lab+'</label><button type="button" class="ms-btn" aria-haspopup="listbox"><span class="ms-val">All</span><svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>'
+    +'<div class="ms-pop" hidden><input class="ms-q" type="text" placeholder="Search…" autocomplete="off"><div class="ms-act"></div><div class="ms-list"></div></div></div>').join("");
+  host.querySelectorAll(".ms").forEach(el=>{
+    const k=el.dataset.k, pop=el.querySelector(".ms-pop"), q=el.querySelector(".ms-q");
+    el.querySelector(".ms-act").innerHTML = k==="mov" ? '<button type="button" data-a="def">Default</button><button type="button" data-a="all">All movements</button>' : '<button type="button" data-a="clear">Clear</button>';
+    el.querySelector(".ms-btn").addEventListener("click",e=>{ e.stopPropagation(); if(el.classList.contains("off")) return; const wasHidden=pop.hidden; closeMS(); if(wasHidden){ pop.hidden=false; q.value=""; msList(k); q.focus(); } });
+    q.addEventListener("input",()=>msList(k));
+    pop.addEventListener("click",e=>e.stopPropagation());
+    pop.addEventListener("change",e=>{ const cb=e.target.closest("input[type=checkbox]"); if(!cb) return; const set=msSet(k); if(cb.checked) set.add(cb.value); else set.delete(cb.value); msChanged(k); });
+    el.querySelector(".ms-act").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; const a=b.dataset.a;
+      if(a==="clear") msSet(k).clear(); if(a==="def") S.mov=new Set(DEFSET); if(a==="all") S.mov=new Set(ALLMOV.map(m=>m[0]));
+      msChanged(k); msList(k); });
+  });
+  document.addEventListener("click",closeMS);
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeMS(); });
+}
+function closeMS(){ document.querySelectorAll(".ms-pop").forEach(p=>p.hidden=true); }
+function msList(k){
+  const el=document.querySelector('.ms[data-k="'+k+'"]'); if(!el) return;
+  const q=el.querySelector(".ms-q").value.trim().toLowerCase(), set=msSet(k), all=MSOPT[k]||[];
+  const m=q?all.filter(o=>o.l.toLowerCase().includes(q)):all, shown=m.slice(0,300);
+  el.querySelector(".ms-list").innerHTML = shown.map(o=>'<label class="ms-it"><input type="checkbox" value="'+esc(o.v)+'"'+(set.has(o.v)?" checked":"")+'><span>'+esc(o.l)+'</span></label>').join("")
+    + (m.length>shown.length?'<div class="ms-more">'+nf(m.length-shown.length)+' more — type to narrow</div>':"") + (!m.length?'<div class="ms-more">Nothing matches</div>':"");
+}
+function msBtn(k){
+  const el=document.querySelector('.ms[data-k="'+k+'"]'); if(!el) return; const set=msSet(k); let t, on;
+  if(k==="mov"){ const n=ALLMOV.length; on=!isDefaultMov(); t = n&&set.size===n ? "All "+n : isDefaultMov() ? "Default ("+set.size+")" : set.size+" of "+n+" selected"; }
+  else { on=set.size>0; const one=set.size===1?(MSOPT[k].find(o=>o.v===[...set][0])||{l:[...set][0]}).l:""; t = !set.size ? "All" : set.size===1 ? (k==="outlet"?one.split(" — ")[0]:one) : set.size+" selected"; }
+  el.querySelector(".ms-val").textContent=t; el.classList.toggle("on",on);
+}
+function msChanged(k){ S.page=0; S.po.page=0; syncFilters(k); render(); }
+function prune(set,allowed){ const a=new Set(allowed); [...set].forEach(v=>{ if(!a.has(v)) set.delete(v); }); }
+function syncFilters(skip){
+  const f=S.f, mk=a=>a.map(v=>({v,l:v}));
+  MSOPT.region = mk(uniq(OUT.map(o=>o.region)));
+  const inR = OUT.filter(o=>has(f.region,o.region));
+  const dl = uniq(inR.map(o=>o.district)); prune(f.district,dl); MSOPT.district=mk(dl);
+  const inD = inR.filter(o=>has(f.district,o.district));
+  const zl = uniq(inD.map(o=>o.zone)); prune(f.zone,zl); MSOPT.zone=mk(zl);
+  const inZ = inD.filter(o=>has(f.zone,o.zone));
+  prune(f.outlet,inZ.map(o=>o.code)); MSOPT.outlet = inZ.map(o=>({v:o.code,l:o.code+" — "+o.name}));
+  MSOPT.master = mk(uniq(COMBO.map(c=>c.master)));
+  const cl = uniq(COMBO.filter(c=>has(f.master,c.master)).map(c=>c.cat)); prune(f.cat,cl); MSOPT.cat=mk(cl);
+  MSOPT.mov = ALLMOV.map(([c,n])=>({v:c,l:c+"  ("+nf(n)+")"}));
+  MSDEF.forEach(m=>{ msBtn(m.k); const pop=document.querySelector('.ms[data-k="'+m.k+'"] .ms-pop'); if(pop&&!pop.hidden&&m.k!==skip) msList(m.k); });
 }
 
 /* ---------- calculation ---------- */
 function masks(){
   const f=S.f;
   const om = new Uint8Array(OUT.length);
-  OUT.forEach((o,i)=>{ om[i] = (!f.region||o.region===f.region)&&(!f.district||o.district===f.district)&&(!f.zone||o.zone===f.zone)&&(!f.outlet||o.code===f.outlet) ? 1:0; });
+  OUT.forEach((o,i)=>{ om[i] = (has(f.region,o.region)&&has(f.district,o.district)&&has(f.zone,o.zone)&&has(f.outlet,o.code)) ? 1:0; });
   const cm = new Uint8Array(COMBO.length);
-  COMBO.forEach((c,i)=>{ cm[i] = (!f.master||c.master===f.master)&&(!f.cat||c.cat===f.cat) ? 1:0; });
+  COMBO.forEach((c,i)=>{ cm[i] = (has(f.master,c.master)&&has(f.cat,c.cat)) ? 1:0; });
   return {om,cm};
 }
-function aggregate(d,T){
+
+/* Over receiving for the CURRENT movement selection, recalculated from the receipt lines (same rules as the build script). */
+const CC = {};
+const movKey = () => [...S.mov].sort().join("|");
+function calcFor(d){
+  const P=POD[S.open]; if(!P||P.err||!P.n) return null;
+  const key=S.open+"#"+movKey(); if(CC[key]) return CC[key];
+  const R=d.over, n=R.o.length, L=P.q.length, off=new Int32Array(n+1);
+  for(let i=0;i<n;i++) off[i+1]=off[i]+P.n[i];
+  const ms=P.lists.mov.map(m=>S.mov.has(m)?1:0), sel=new Uint8Array(L);
+  for(let l=0;l<L;l++) sel[l]=ms[P.mov[l]];
+  const qty=new Array(n).fill(null), score=new Array(n).fill(null), recv=new Array(n).fill(0), inv=new Array(n).fill(0), value=new Array(n).fill(null), po=new Array(n).fill(""), mov=new Array(n).fill("");
+  const lov=new Float32Array(L), cut = META.cutoff==null ? 1e9 : META.cutoff;
+  for(let i=0;i<n;i++){
+    let rq=0, am=0, fp=1e9; const ps=new Set(), mv=new Set();
+    for(let l=off[i];l<off[i+1];l++){
+      if(!sel[l]) continue; const q=P.q[l]; rq+=q; am+=P.amt[l]; if(q>0 && P.d[l]<fp) fp=P.d[l];
+      ps.add(P.lists.po[P.po[l]]); mv.add(P.lists.mov[P.mov[l]]);
+    }
+    const open=R.open[i]||0, sales=R.sales[i]||0, est=R.est[i]||0, iv=open+rq, os=iv-sales-est;
+    recv[i]=rq; inv[i]=iv; po[i]=[...ps].sort().join(", ").slice(0,200); mov[i]=[...mv].sort().join(", ").slice(0,60);
+    const over = os>0 ? Math.min(os,rq) : null;
+    const ok = over!=null && over>0 && rq>10 && iv>0 && (iv-over)>0 && (fp>=1e9 || fp<=cut);
+    if(!ok) continue;
+    score[i]=over*3/rq; qty[i]=over;
+    const q1=R.q1?(R.q1[i]||0):0, q3=rq!==0?Math.max(0,am/rq):0, cpu=q1===0?q3:q1;
+    value[i]=Math.max(0,over*cpu);
+    let cum=0;                                           // latest receipt first
+    for(let l=off[i];l<off[i+1];l++){ if(!sel[l]) continue; const qp=Math.max(P.q[l],0); lov[l]=Math.min(Math.max(over-cum,0),qp); cum+=qp; }
+  }
+  return CC[key]={off,sel,lov,qty,score,recv,inv,value,po,mov};
+}
+/* the arrays the table reads: server values for the default selection, recalculated ones otherwise */
+function viewOf(d,T){
+  if(T==="under") return d.under;
+  if(isDefaultMov()) return d.over;
+  const C=calcFor(d); if(!C) return null;
+  if(!C.view){ const R=d.over; C.view={o:R.o,a:R.a,open:R.open,sys:R.sys,curd:R.curd,sales:R.sales,est:R.est,q1:R.q1,qty:C.qty,score:C.score,recv:C.recv,inv:C.inv,value:C.value,po:C.po,mov:C.mov}; }
+  return C.view;
+}
+function aggregate(d,T,V,custom){
   const {om,cm}=masks(); const c=d.cells;
   const inc = T==="over"?c.oi:c.ui, qty = T==="over"?c.oq:c.uq;
   const tot={base:0,inc:0,qty:0,val:0,rq:0,sq:0}, reg={}, dist={}, cat={}, outl={};
-  const add=(m,k,i)=>{ const g=m[k]||(m[k]={base:0,inc:0,qty:0,val:0}); g.base+=c.base[i]; g.inc+=inc[i]; g.qty+=qty[i]; if(T==="over") g.val+=c.ov[i]; };
+  const grp=(m,k)=>m[k]||(m[k]={base:0,inc:0,qty:0,val:0});
   for(let i=0;i<c.o.length;i++){
     const o=c.o[i], k=c.c[i]; if(!om[o]||!cm[k]) continue;
-    tot.base+=c.base[i]; tot.inc+=inc[i]; tot.qty+=qty[i]; tot.val+=c.ov[i]; tot.rq+=c.rq[i]; tot.sq+=c.sq[i];
-    const ot=OUT[o]; add(reg,ot.region,i); add(dist,ot.district,i); add(cat,COMBO[k].cat,i); add(outl,o,i);
+    tot.base+=c.base[i]; tot.rq+=c.rq[i]; tot.sq+=c.sq[i];
+    const ot=OUT[o], gs=[grp(reg,ot.region),grp(dist,ot.district),grp(cat,COMBO[k].cat),grp(outl,o)];
+    gs.forEach(g=>{ g.base+=c.base[i]; });
+    if(!custom){ tot.inc+=inc[i]; tot.qty+=qty[i]; tot.val+=c.ov[i]; gs.forEach(g=>{ g.inc+=inc[i]; g.qty+=qty[i]; if(T==="over") g.val+=c.ov[i]; }); }
+  }
+  if(custom){                                            // movement selection changed: count the recalculated incident rows
+    for(let i=0;i<V.o.length;i++){
+      if(V.score[i]==null) continue; const o=V.o[i], ci=ARTCOMBO[V.a[i]]; if(!om[o]) continue; if(ci>=0&&!cm[ci]) continue;
+      const ot=OUT[o], cn=ci>=0?COMBO[ci].cat:"Unknown", v=V.value[i]||0;
+      tot.inc++; tot.qty+=V.qty[i]; tot.val+=v;
+      [grp(reg,ot.region),grp(dist,ot.district),grp(cat,cn),grp(outl,o)].forEach(g=>{ g.inc++; g.qty+=V.qty[i]; g.val+=v; });
+    }
   }
   return {tot,reg,dist,cat,outl};
 }
-function rowsFor(d,T){
-  const {om,cm}=masks(); const r=d[T], q=S.f.art, out=[];
-  for(let i=0;i<r.o.length;i++){
-    if(!om[r.o[i]]) continue; const a=r.a[i], ci=ARTCOMBO[a]; if(ci>=0 && !cm[ci]) continue;
-    if(q){ const A=ART[a]; if(!(A.no.toLowerCase().includes(q)||A.name.toLowerCase().includes(q))) continue; }
+function rowsFor(d,T,V){
+  const {om,cm}=masks(), f=S.f, out=[];
+  for(let i=0;i<V.o.length;i++){
+    if(V.score[i]==null) continue;                       // not an incident under this movement selection
+    if(!om[V.o[i]]) continue; const a=V.a[i], ci=ARTCOMBO[a]; if(ci>=0 && !cm[ci]) continue;
+    if(f.sev.size && !f.sev.has(band(V.score[i])[1])) continue;
+    if(f.art.length){ const A=ART[a], t=(A.no+" "+A.name).toLowerCase(); if(!f.art.some(x=>t.includes(x))) continue; }
+    if(f.po.length && T==="over"){ const t=String(V.po[i]||"").toLowerCase(); if(!f.po.some(x=>t.includes(x))) continue; }
     out.push(i);
   }
   return out;
@@ -359,10 +490,10 @@ function showTip(e,html){ tip.innerHTML=html; tip.style.opacity=1; const w=tip.o
 function hideTip(){ tip.style.opacity=0; }
 function bind(el,fn){ el.addEventListener("mousemove",e=>showTip(e,fn(el))); el.addEventListener("mouseleave",hideTip); el.addEventListener("focus",()=>{const r=el.getBoundingClientRect(); showTip({clientX:r.left+20,clientY:r.top},fn(el));}); el.addEventListener("blur",hideTip); }
 
-function barList(items,T,kind,selected){
+function barList(items,T,kind,isSel){
   if(!items.length) return '<div class="empty">No incidents for this selection.</div>';
   const max=Math.max(...items.map(x=>x.inc),1);
-  return '<div class="bars">'+items.map((x,i)=>'<button type="button" class="bar'+(selected===x.key?" on":"")+'" data-kind="'+kind+'" data-i="'+i+'">'
+  return '<div class="bars">'+items.map((x,i)=>'<button type="button" class="bar'+(isSel(x)?" on":"")+'" data-kind="'+kind+'" data-i="'+i+'">'
     +'<span class="name">'+esc(x.label)+'</span><span class="track"><span class="fill" style="width:'+(100*x.inc/max)+'%"></span></span>'
     +'<span class="val"><b>'+nf(x.inc)+'</b> · '+x.rate.toFixed(0)+'%</span></button>').join("")+'</div>';
 }
@@ -373,32 +504,40 @@ function ramp(T,v,max){ const r=RAMP[T]; if(max<=0) return r[0]; return r[Math.m
 
 function render(){
   if(!DATA[S.open]) return;
-  const d=DATA[S.open], T=S.tab, A=aggregate(d,T), word=T==="over"?"over":"under";
+  const d=DATA[S.open], T=S.tab, custom = T==="over" && !isDefaultMov();
   document.documentElement.style.setProperty("--accent",T==="over"?"var(--over)":"var(--under)");
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.t===T));
   $("#tabHelp").textContent=COPY[T].help;
+  const mel=document.querySelector('.ms[data-k="mov"]'); if(mel){ mel.classList.toggle("off",T==="under"); mel.title = T==="under" ? "The movement filter applies to Over receiving. Under receiving uses the default movements." : ""; }
+  if(T==="over") loadPO(S.open);
+  const V=viewOf(d,T);
+  if(!V){ const P=POD[S.open];
+    $("#app").innerHTML = (P&&(P.err||!P.n)) ? '<div class="err"><b>Movement recalculation needs the receipt lines.</b> They are missing or from an older build. Run <code>update_dashboard.bat</code>, or press “Default” in the Movement filter.</div>' : '<div class="loading">Recalculating for your movement selection…</div>';
+    return; }
+  const A=aggregate(d,T,V,custom), word=T==="over"?"over":"under";
+  const accentSoft=T==="over"?"var(--over-soft)":"var(--under-soft)", accentInk=T==="over"?"var(--over-ink)":"var(--under-ink)";
+  document.documentElement.style.setProperty("--accent-soft",accentSoft); document.documentElement.style.setProperty("--accent-ink",accentInk);
   const days=Math.round((new Date(META.closing)-new Date(S.open))/864e5)+1;
   $("#period").innerHTML='Period <b>'+fdate(S.open)+' → '+fdate(META.closing,true)+'</b> · '+days+' days';
   const t=A.tot, rate=pct(t.inc,t.base);
   const k4 = T==="over" ? ['Value of over receiving','BDT '+bdt(t.val),'At cost per unit'] : ['Received per unit sold',(t.sq>0?(t.rq/t.sq).toFixed(2):"–")+'×','Units received ÷ units sold'];
-  const accentSoft=T==="over"?"var(--over-soft)":"var(--under-soft)", accentInk=T==="over"?"var(--over-ink)":"var(--under-ink)";
-  document.documentElement.style.setProperty("--accent-soft",accentSoft); document.documentElement.style.setProperty("--accent-ink",accentInk);
-
   const regs=topN(A.reg,k=>k,8), cats=topN(A.cat,k=>k,8), outs=topN(A.outl,k=>OUT[k].code+" · "+OUT[k].name.replace(/^[A-Z]\d+-/,""),8);
-  let html='<section class="kpis">'
+  let html = custom ? '<div class="mvnote"><span><b>Custom movement selection</b> · '+S.mov.size+' of '+ALLMOV.length+' movements. Incident rows, PO lines and cards are recalculated for the highest-scoring incidents kept by the build, so totals can differ from the default view.</span><button class="btn" id="mvDefault" type="button">Back to default</button></div>' : '';
+  html+='<section class="kpis">'
    +kpi("Incidents",nf(t.inc),"Outlet–article pairs flagged")
    +kpi("Incident rate",rate.toFixed(1)+"%",nf(t.inc)+" of "+nf(t.base)+" pairs received")
    +kpi(T==="over"?"Units over received":"Units short",nf(t.qty),"Across flagged incidents")
    +kpi(k4[0],k4[1],k4[2])+'</section>';
-  html+=tableHTML(d,T);
+  html+=tableHTML(d,T,V,custom);
   if(T==="over") html+='<section class="panel" id="poBox"></section>';
-  html+='<div class="grid"><section class="panel"><h2>Where it happens</h2><p class="sub">Size = incidents, shade = incident rate.</p><div class="mapbox" id="map"></div><div class="legend" id="mapLegend"></div></section>'
-   +'<section class="panel"><h2>By division</h2><p class="sub">Incidents · rate. Click to filter.</p><div id="bReg">'+barList(regs,T,"region",S.f.region)+'</div></section>'
-   +'<section class="panel"><h2>Top categories</h2><p class="sub">Click to filter.</p><div id="bCat">'+barList(cats,T,"cat",S.f.cat)+'</div></section>'
-   +'<section class="panel"><h2>Top outlets</h2><p class="sub">Click to filter.</p><div id="bOut">'+barList(outs,T,"outlet",Object.keys(A.outl).find(k=>OUT[k].code===S.f.outlet))+'</div></section>'
+  html+='<div class="grid"><section class="panel"><h2>Where it happens</h2><p class="sub">Size = incidents, shade = incident rate. Click a district to filter; click again to remove.</p><div class="mapbox" id="map"></div><div class="legend" id="mapLegend"></div></section>'
+   +'<section class="panel"><h2>By division</h2><p class="sub">Incidents · rate. Click to filter.</p><div id="bReg">'+barList(regs,T,"region",x=>S.f.region.has(x.key))+'</div></section>'
+   +'<section class="panel"><h2>Top categories</h2><p class="sub">Click to filter.</p><div id="bCat">'+barList(cats,T,"cat",x=>S.f.cat.has(x.key))+'</div></section>'
+   +'<section class="panel"><h2>Top outlets</h2><p class="sub">Click to filter.</p><div id="bOut">'+barList(outs,T,"outlet",x=>S.f.outlet.has(OUT[x.key].code))+'</div></section>'
    +'</div>';
   $("#app").innerHTML=html;
-  drawMap(A,T); wireBars({region:regs,cat:cats,outlet:outs},T); wireTable(d,T); renderPO();
+  $("#mvDefault")?.addEventListener("click",()=>{ S.mov=new Set(DEFSET); S.pair=null; S.page=0; syncFilters(); render(); });
+  drawMap(A,T); wireBars({region:regs,cat:cats,outlet:outs},T); wireTable(d,T,V); renderPO();
   $("#foot").innerHTML='Opening stock is the stock on the opening date; closing is always the latest date in the data. '+(META.demo?"":'Built '+esc(META.generated)+'.');
 }
 function kpi(k,v,s){ return '<div class="kpi"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s)+'</div></div>'; }
@@ -408,13 +547,13 @@ function drawMap(A,T){
   const list=Object.entries(dm).filter(([k])=>COORD[k]).map(([k,g])=>({k,...g,rate:pct(g.inc,g.base)}));
   const maxInc=Math.max(...list.map(x=>x.inc),1), maxRate=Math.max(...list.map(x=>x.rate),1);
   const circles=list.sort((a,b)=>b.inc-a.inc).map(x=>{ const [cx,cy]=COORD[x.k]; const r=4+Math.sqrt(x.inc/maxInc)*24;
-    return '<circle tabindex="0" data-k="'+esc(x.k)+'" cx="'+cx+'" cy="'+cy+'" r="'+r.toFixed(1)+'" fill="'+ramp(T,x.rate,maxRate)+'" fill-opacity=".92" stroke="var(--surface)" stroke-width="2"/>'; }).join("");
+    return '<circle tabindex="0" data-k="'+esc(x.k)+'" cx="'+cx+'" cy="'+cy+'" r="'+r.toFixed(1)+'" fill="'+ramp(T,x.rate,maxRate)+'" fill-opacity=".92" stroke="'+(S.f.district.has(x.k)?"var(--ink)":"var(--surface)")+'" stroke-width="'+(S.f.district.has(x.k)?3:2)+'"/>'; }).join("");
   const miss=Object.keys(dm).filter(k=>!COORD[k]);
   $("#map").innerHTML='<svg viewBox="0 0 500 650" role="img" aria-label="Incidents by district"><path d="'+OUTLINE+'" fill="var(--surface)" stroke="var(--ink-mute)" stroke-width="1.5" stroke-linejoin="round"/>'+circles+'</svg>';
   document.querySelectorAll("#map circle").forEach(c=>{ const x=list.find(z=>z.k===c.dataset.k);
     c.addEventListener("mousemove",e=>showTip(e,"<b>"+esc(x.k)+"</b><br>"+nf(x.inc)+" incidents of "+nf(x.base)+" pairs<br>Rate "+x.rate.toFixed(1)+"% · "+nf(x.qty)+" units"));
     c.addEventListener("mouseleave",hideTip);
-    c.addEventListener("click",()=>{ const o=OUT.find(o=>(ALIAS[o.district]||o.district)===x.k); if(o){ S.f.region=o.region; S.f.district=o.district; S.f.zone=""; S.f.outlet=""; syncFilters(); render(); }});
+    c.addEventListener("click",()=>{ const set=S.f.district; if(set.has(x.k)) set.delete(x.k); else set.add(x.k); S.page=0; S.po.page=0; syncFilters(); render(); });
   });
   const steps=RAMP[T].map((c,i)=>'<span class="sw"><i style="background:'+c+'"></i>'+Math.round(maxRate*i/5)+(i<4?"–"+Math.round(maxRate*(i+1)/5):"+")+'%</span>').join("");
   $("#mapLegend").innerHTML='<span>Rate:</span>'+steps+(miss.length?'<span style="color:var(--ink-mute)">Not on map: '+esc(miss.slice(0,6).join(", "))+(miss.length>6?"…":"")+'</span>':"");
@@ -425,11 +564,9 @@ function wireBars(sets,T){
     b.addEventListener("mousemove",e=>showTip(e,"<b>"+esc(x.label)+"</b><br>"+nf(x.inc)+" incidents of "+nf(x.base)+" pairs<br>Rate "+x.rate.toFixed(1)+"% · "+nf(x.qty)+" units"));
     b.addEventListener("mouseleave",hideTip);
     b.addEventListener("click",()=>{
-      const k=b.dataset.kind, f=S.f;
-      if(k==="region") f.region = f.region===x.key?"":x.key;
-      if(k==="cat") f.cat = f.cat===x.key?"":x.key;
-      if(k==="outlet") f.outlet = f.outlet===OUT[x.key].code?"":OUT[x.key].code;
-      S.page=0; syncFilters(); render();
+      const k=b.dataset.kind, f=S.f, v = k==="outlet" ? OUT[x.key].code : x.key, set=f[k];
+      if(set.has(v)) set.delete(v); else set.add(v);
+      S.page=0; S.po.page=0; syncFilters(); render();
     });
   });
 }
@@ -440,71 +577,91 @@ const COLS = {
   under:[["outlet","Outlet",0],["article","Article",0],["cat","Category",0],["qty","Short qty",1],["score","Score",0],["open","Opening stock",1],["recv","Receiving qty",1],["inv","Total inventory",1],["sales","Sales qty",1],["std","Std. stock days",1],["curd","Current stock day",1],["sys","Current stock in system",1],["req","Required stock",1]]
 };
 function vv(r,key,i){ if(key==="std") return ART[r.a[i]].std; if(key==="close") return (r.inv[i]==null||r.sales[i]==null)?null:r.inv[i]-r.sales[i]; return r[key]?r[key][i]:null; }
-function cellVal(d,T,i,key){
-  const r=d[T];
+function cellVal(r,i,key){
   if(key==="outlet") return OUT[r.o[i]].code+" "+OUT[r.o[i]].name;
   if(key==="article") return ART[r.a[i]].no+" "+ART[r.a[i]].name;
   if(key==="cat") return ART[r.a[i]].cat;
   if(key==="days") return "";
   const v=vv(r,key,i); return v==null?-1e12:v;
 }
-const DM={};
-function daysOf(d,o,a){
-  const P=POD[d]; if(!P||P.err) return null;
-  if(!DM[d]){ const m=new Map(); for(let i=0;i<P.o.length;i++){ if(!(P.ov[i]>0)) continue; const k=P.o[i]+"|"+P.a[i]; if(!m.has(k)) m.set(k,[]); m.get(k).push([P.d[i],P.ov[i]]); } m.forEach(v=>v.sort((x,y)=>y[0]-x[0])); DM[d]=m; }
-  return DM[d].get(o+"|"+a)||[];
-}
-function daysTxt(d,o,a){
-  const v=daysOf(d,o,a); if(v===null) return "…"; if(!v.length) return "–";
+function daysTxt(i){
+  const C=CC[S.open+"#"+movKey()], P=POD[S.open]; if(P&&P.err) return "–"; if(!C||!P) return "…";
+  const out=[]; for(let l=C.off[i];l<C.off[i+1];l++) if(C.lov[l]>0) out.push([P.d[l],C.lov[l]]);
+  if(!out.length) return "–";
   const f=x=>fday(offMs(x[0]),{day:"numeric",month:"short"})+" ("+nf(x[1])+")";
-  return v.slice(0,6).map(f).join(", ")+(v.length>6?" +"+(v.length-6)+" more":"");
+  return out.slice(0,6).map(f).join(", ")+(out.length>6?" +"+(out.length-6)+" more":"");
 }
 function band(s){ return s>2.5?["Very high","vh"]:s>1?["High","h"]:["Moderate","m"]; }
-function tableHTML(d,T){
-  if(T==="over") loadPO(S.open);
-  const idx=rowsFor(d,T), key=S.sort.key, dir=S.sort.dir;
-  idx.sort((a,b)=>{ const x=cellVal(d,T,a,key), y=cellVal(d,T,b,key); return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*dir; });
+function pairLabel(V,i){ return OUT[V.o[i]].code+" · "+ART[V.a[i]].no+" "+ART[V.a[i]].name; }
+function selBarHTML(d){
+  if(S.tab!=="over") return "";
+  const V=viewOf(d,"over"); const p=S.pair;
+  if(p && V){ let i=-1; for(let k=0;k<V.o.length;k++) if(V.o[k]===p.o&&V.a[k]===p.a){ i=k; break; }
+    if(i>=0) return '<span class="selchip">Selected: <b>'+esc(pairLabel(V,i))+'</b> — the PO table below shows only its receipts.</span><button class="btn" id="selClear" type="button">Clear selection</button>'; }
+  return '<span class="selhint">Click a row to show only its receipts in the PO table below.</span>';
+}
+function tableHTML(d,T,V,custom){
+  const idx=rowsFor(d,T,V), key=S.sort.key, dir=S.sort.dir;
+  idx.sort((a,b)=>{ const x=cellVal(V,a,key), y=cellVal(V,b,key); return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*dir; });
   S._idx=idx;
   const per=15, pages=Math.max(1,Math.ceil(idx.length/per)); if(S.page>=pages) S.page=pages-1;
-  const slice=idx.slice(S.page*per,S.page*per+per), cols=COLS[T], r=d[T];
-  const capped = r.o.length < (T==="over"?d.kpi.over_incidents:d.kpi.under_incidents);
-  let h='<section class="panel"><div class="tbl-head"><div><h2>'+COPY[T].name+' incidents</h2><p class="sub" style="margin-bottom:0">'+nf(idx.length)+' rows match the filters. Click a heading to sort; the table scrolls inside its box.</p></div><button class="btn primary" id="csv" type="button">Download CSV</button></div>';
-  h+='<div class="sevleg"><span><i class="vh"></i>Very high <em>score &gt; 2.5</em></span><span><i class="h"></i>High <em>score 1 – 2.5</em></span><span><i class="m"></i>Moderate high <em>score 0 – 1</em></span></div>';
+  const slice=idx.slice(S.page*per,S.page*per+per), cols=COLS[T], r=V;
+  let nInc=0; for(let i=0;i<r.o.length;i++) if(r.score[i]!=null) nInc++;
+  const capped = !custom && nInc < (T==="over"?d.kpi.over_incidents:d.kpi.under_incidents);
+  const sv=k=>'<button type="button" class="sevb'+(S.f.sev.has(k)?" on":"")+'" data-sev="'+k+'"><i class="'+k+'"></i>';
+  let h='<section class="panel"><div class="tbl-head"><div><h2>'+COPY[T].name+' incidents</h2><p class="sub" style="margin-bottom:0">'+nf(idx.length)+' rows match the filters. Click a heading to sort and a row to select it; the table scrolls inside its box.</p></div><button class="btn primary" id="csv" type="button">Download CSV</button></div>';
+  h+='<div class="sevleg">'+sv("vh")+'Very high <em>score &gt; 2.5</em></button>'+sv("h")+'High <em>score 1 – 2.5</em></button>'+sv("m")+'Moderate high <em>score 0 – 1</em></button><em class="sevtip">Click a level to filter the table and PO lines.</em></div>';
+  h+='<div class="selbar" id="selbar">'+selBarHTML(d)+'</div>';
   h+='<div class="scroll"><table><thead><tr>'+cols.map((c,ci)=>'<th class="'+(c[2]?"r ":"")+(ci===0?"s1":ci===1?"s2":"")+'" data-k="'+c[0]+'">'+c[1]+(key===c[0]?'<span class="ar">'+(dir>0?"▲":"▼")+'</span>':"")+'</th>').join("")+'</tr></thead><tbody>';
   if(!slice.length) h+='<tr><td colspan="'+cols.length+'" class="empty">No incidents match these filters.</td></tr>';
   slice.forEach(i=>{
-    const sc=r.score[i], bd=band(sc);
+    const sc=r.score[i], bd=band(sc), isSel=!!(T==="over"&&S.pair&&S.pair.o===r.o[i]&&S.pair.a===r.a[i]);
     const scoreTd='<td><div class="score"><span class="tr"><b style="width:'+Math.min(100,sc/3*100)+'%"></b></span><span class="num">'+sc.toFixed(2)+'</span><span class="band">'+bd[0]+'</span></div></td>';
     const stock='<td class="r">'+nf(r.open[i])+'</td><td class="r">'+nf(r.recv[i])+'</td><td class="r">'+nf(r.inv[i])+'</td><td class="r">'+nf(r.sales[i])+'</td>'
       +'<td class="r">'+(ART[r.a[i]].std==null?"–":nf(ART[r.a[i]].std))+'</td><td class="r">'+(r.curd&&r.curd[i]!=null?r.curd[i].toFixed(2):"–")+'</td><td class="r">'+(r.sys&&r.sys[i]!=null?nf(r.sys[i]):"–")+'</td>';
-    h+='<tr class="sv-'+bd[1]+'"><td class="wrapc s1">'+esc(OUT[r.o[i]].code)+'<span class="small">'+esc(OUT[r.o[i]].name)+'</span></td>'
+    h+='<tr data-i="'+i+'" data-o="'+r.o[i]+'" data-a="'+r.a[i]+'" class="sv-'+bd[1]+(isSel?" sel":"")+'"><td class="wrapc s1">'+esc(OUT[r.o[i]].code)+'<span class="small">'+esc(OUT[r.o[i]].name)+'</span></td>'
      +'<td class="wrapc s2">'+esc(ART[r.a[i]].no)+'<span class="small">'+esc(ART[r.a[i]].name)+'</span></td>'
      +'<td style="min-width:150px">'+esc(ART[r.a[i]].cat)+'<span class="small">'+esc(ART[r.a[i]].master)+'</span></td>';
-    if(T==="over") h+='<td class="r ovq">'+nf(r.qty[i])+'</td><td class="r">'+nf(r.value[i])+'</td>'+scoreTd+stock+'<td class="r">'+nf(vv(r,"close",i))+'</td><td>'+esc(r.po[i])+'</td><td>'+esc(r.mov[i])+'</td><td style="min-width:190px">'+esc(daysTxt(S.open,r.o[i],r.a[i]))+'</td>';
+    if(T==="over") h+='<td class="r ovq">'+nf(r.qty[i])+'</td><td class="r">'+nf(r.value[i])+'</td>'+scoreTd+stock+'<td class="r">'+nf(vv(r,"close",i))+'</td><td>'+esc(r.po[i])+'</td><td>'+esc(r.mov[i])+'</td><td style="min-width:190px">'+esc(daysTxt(i))+'</td>';
     else h+='<td class="r ovq">'+nf(r.qty[i])+'</td>'+scoreTd+stock+'<td class="r">'+nf(r.req[i])+'</td>';
     h+='</tr>';
   });
   h+='</tbody></table></div><div class="pager"><button class="btn" id="prev" type="button"'+(S.page===0?" disabled":"")+'>Previous</button><span>Page '+(S.page+1)+' of '+nf(pages)+'</span><button class="btn" id="next" type="button"'+(S.page>=pages-1?" disabled":"")+'>Next</button></div>';
-  if(capped) h+='<p class="note">The table lists the '+nf(r.o.length)+' highest-scoring incidents. The cards, map and charts count all '+nf(T==="over"?d.kpi.over_incidents:d.kpi.under_incidents)+'.</p>';
+  if(capped) h+='<p class="note">The table lists the '+nf(nInc)+' highest-scoring incidents. The cards, map and charts count all '+nf(T==="over"?d.kpi.over_incidents:d.kpi.under_incidents)+'.</p>';
+  if(custom) h+='<p class="note">Recalculated for the '+nf(nInc)+' incidents that qualify under the selected movements (among the highest-ranked pairs kept by the build).</p>';
   return h+'</section>';
 }
-function wireTable(d,T){
-  document.querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{ const k=th.dataset.k; S.sort = S.sort.key===k?{key:k,dir:-S.sort.dir}:{key:k,dir:(["outlet","article","cat","po","mov"].includes(k)?1:-1)}; S.page=0; render(); }));
+function setPair(o,a){
+  S.pair = (S.pair&&S.pair.o===o&&S.pair.a===a) ? null : {o,a};
+  document.querySelectorAll("tbody tr[data-i]").forEach(x=>x.classList.toggle("sel",!!(S.pair&&+x.dataset.o===S.pair.o&&+x.dataset.a===S.pair.a)));
+  S.po.page=0; renderSel(); renderPO();
+}
+function renderSel(){
+  const el=$("#selbar"); if(!el||!DATA[S.open]) return; el.innerHTML=selBarHTML(DATA[S.open]);
+  $("#selClear")?.addEventListener("click",clearPair);
+}
+function clearPair(){ S.pair=null; document.querySelectorAll("tbody tr.sel").forEach(x=>x.classList.remove("sel")); S.po.page=0; renderSel(); renderPO(); }
+function wireTable(d,T,V){
+  document.querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{ if(th.closest("#poBox")) return; const k=th.dataset.k; S.sort = S.sort.key===k?{key:k,dir:-S.sort.dir}:{key:k,dir:(["outlet","article","cat","po","mov"].includes(k)?1:-1)}; S.page=0; render(); }));
   $("#prev")?.addEventListener("click",()=>{S.page--; render(); $(".tbl-head")?.scrollIntoView({block:"nearest"});});
   $("#next")?.addEventListener("click",()=>{S.page++; render(); $(".tbl-head")?.scrollIntoView({block:"nearest"});});
+  document.querySelectorAll(".sevb").forEach(b=>b.addEventListener("click",()=>{ const s=S.f.sev, k=b.dataset.sev; if(s.has(k)) s.delete(k); else s.add(k); S.page=0; S.po.page=0; render(); }));
+  $("#selClear")?.addEventListener("click",clearPair);
+  if(T==="over") document.querySelectorAll("tbody tr[data-i]").forEach(tr=>tr.addEventListener("click",()=>setPair(+tr.dataset.o,+tr.dataset.a)));
   $("#csv")?.addEventListener("click",()=>{
-    const cols=COLS[T], r=d[T];
+    const cols=COLS[T], r=V;
     const head=["Outlet code","Outlet name","Division","District","Article","Article name","Master category","Category"].concat(cols.slice(3).map(c=>c[1]));
     const lines=[head.join(",")];
     S._idx.forEach(i=>{
       const o=OUT[r.o[i]], a=ART[r.a[i]];
-      const vals=[o.code,o.name,o.region,o.district,a.no,a.name,a.master,a.cat].concat(cols.slice(3).map(c=>c[0]==="score"?r.score[i]:c[0]==="days"?(daysOf(S.open,r.o[i],r.a[i])||[]).map(x=>new Date(offMs(x[0])).toISOString().slice(0,10)+":"+x[1]).join("; "):vv(r,c[0],i)));
+      const vals=[o.code,o.name,o.region,o.district,a.no,a.name,a.master,a.cat].concat(cols.slice(3).map(c=>c[0]==="days"?daysTxt(i):vv(r,c[0],i)));
       lines.push(vals.map(v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"').join(","));
     });
     const blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=(T==="over"?"over":"under")+"_receiving_"+S.open+"_to_"+META.closing+".csv"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
   });
 }
+
 /* ---------- day-wise chart ---------- */
 const utcMs = s => Date.parse(s+"T00:00:00Z");
 const fday = (ms,o) => new Date(ms).toLocaleDateString("en-GB",Object.assign({timeZone:"UTC"},o));
@@ -517,62 +674,62 @@ function renderDay(){}
 /* ---------- PO detail table (over receiving) ---------- */
 async function loadPO(d){
   if(POD[d]||POL[d]) return; POL[d]=1;
-  try{ POD[d]=await getJSON("data/po_"+d+".json.gz"); }catch(e){ POD[d]={err:e.message}; }
+  try{ POD[d]=await getJSON("data/po_"+d+".json.gz"); if(!POD[d].n) POD[d]={err:"The receipt-line file is from an older build."}; }catch(e){ POD[d]={err:e.message}; }
   if(S.open===d && S.tab==="over") render();
-}
-function poRows(P,forChart){
-  const {om,cm}=masks(); const f=S.f, q=f.art, pq=forChart?"":S.po.q.trim().toLowerCase(), out=[];
-  for(let i=0;i<P.o.length;i++){
-    if(!om[P.o[i]]) continue; const a=P.a[i], ci=ARTCOMBO[a]; if(ci>=0&&!cm[ci]) continue;
-    if(!forChart && S.po.only && !(P.ov[i]>0)) continue;
-    if(q){ const A=ART[a]; if(!(A.no.toLowerCase().includes(q)||A.name.toLowerCase().includes(q))) continue; }
-    if(pq && !String(P.lists.po[P.po[i]]).toLowerCase().includes(pq)) continue;
-    out.push(i);
-  }
-  return out;
 }
 function poCols(P){
   const c=[["outlet","Outlet",0],["article","Article",0],["po","PO number",0],["mov","Movement",0]];
   if(P.cb) c.push(["cb","Created by",0]); if(P.pd) c.push(["pd","PO date",0]);
   c.push(["d","Receiving date",0],["q","Receiving qty",1],["ov","Over qty",1]); return c;
 }
-function poVal(P,i,k){
-  switch(k){ case "outlet": return OUT[P.o[i]].code; case "article": return ART[P.a[i]].no; case "po": return P.lists.po[P.po[i]]; case "mov": return P.lists.mov[P.mov[i]];
-    case "cb": return P.lists.cb[P.cb[i]]; case "pd": return P.pd[i]==null?-1e9:P.pd[i]; case "d": return P.d[i]; default: return P[k][i]; }
+function poVal(P,C,V,l,i,k){
+  switch(k){ case "outlet": return OUT[V.o[i]].code; case "article": return ART[V.a[i]].no; case "po": return P.lists.po[P.po[l]]; case "mov": return P.lists.mov[P.mov[l]];
+    case "cb": return P.lists.cb[P.cb[l]]; case "pd": return P.pd[l]==null?-1e9:P.pd[l]; case "d": return P.d[l]; case "q": return P.q[l]; default: return C.lov[l]; }
 }
-function poDate(o,long){ return o==null?"":fday(offMs(o),{weekday:"short",day:"numeric",month:"short",year:"numeric"}); }
+function poDate(o){ return o==null?"":fday(offMs(o),{weekday:"short",day:"numeric",month:"short",year:"numeric"}); }
 function renderPO(){
   const box=$("#poBox"); if(!box||S.tab!=="over"||!DATA[S.open]) return;
-  const head=(extra)=>'<div class="tbl-head"><div><h2>Daily receiving — outlet, article, PO and movement</h2><p class="sub" style="margin-bottom:0">One line per receiving day for each over-receiving incident in the table above (top 150,000 incidents). Over qty is the part of the line counted as excess, latest receipts first.</p></div>'+(extra||"")+'</div>';
+  const d=DATA[S.open];
+  const head=(extra)=>'<div class="tbl-head"><div><h2>Daily receiving — outlet, article, PO and movement</h2><p class="sub" style="margin-bottom:0">One line per receiving day for the incidents in the table above. It follows every filter, the movement selection and the row you select. Over qty is the part of the line counted as excess, latest receipts first.</p></div>'+(extra||"")+'</div>';
   const P=POD[S.open];
-  if(!P){ box.innerHTML=head()+'<div class="loading">Loading PO lines…</div>'; loadPO(S.open); return; }
-  if(P.err){ box.innerHTML=head()+'<div class="empty">PO lines are not in the data folder yet. Run update_dashboard.bat to build them.</div>'; return; }
-  const cols=poCols(P), idx=poRows(P), key=S.po.sort.key, dir=S.po.sort.dir;
-  idx.sort((a,b)=>{ const x=poVal(P,a,key), y=poVal(P,b,key); return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*dir; });
-  S.po._idx=idx; S.po._cols=cols;
-  const per=15, pages=Math.max(1,Math.ceil(idx.length/per)); if(S.po.page>=pages) S.po.page=pages-1;
-  const slice=idx.slice(S.po.page*per,S.po.page*per+per);
-  const tools='<div class="tbl-tools"><label><input type="checkbox" id="poOnly"'+(S.po.only?" checked":"")+'> Only lines with over qty</label><input type="text" id="poQ" placeholder="PO number" value="'+esc(S.po.q)+'"><button class="btn primary" id="poCsv" type="button">Download CSV</button></div>';
-  let h=head(tools)+'<p class="sub" style="margin:-4px 0 8px">'+nf(idx.length)+' lines match the filters. Use the article box and the other filters above to narrow it.</p>';
+  if(!P){ box.innerHTML=head()+'<div class="loading">Loading receipt lines…</div>'; loadPO(S.open); return; }
+  if(P.err){ box.innerHTML=head()+'<div class="empty">Receipt lines are not available ('+esc(P.err)+'). Run update_dashboard.bat to build them.</div>'; return; }
+  const V=viewOf(d,"over"), C=calcFor(d);
+  if(!V||!C){ box.innerHTML=head()+'<div class="loading">Recalculating…</div>'; return; }
+  let rows=[];
+  if(S.pair){ for(let i=0;i<V.o.length;i++) if(V.o[i]===S.pair.o&&V.a[i]===S.pair.a){ rows=[i]; break; } } else rows=rowsFor(d,"over",V);
+  const L=[], LR=[], pt=S.f.po;
+  for(const i of rows) for(let l=C.off[i];l<C.off[i+1];l++){
+    if(!C.sel[l]) continue; if(S.po.only && !(C.lov[l]>0)) continue;
+    if(pt.length){ const t=String(P.lists.po[P.po[l]]).toLowerCase(); if(!pt.some(x=>t.includes(x))) continue; }
+    L.push(l); LR.push(i);
+  }
+  const cols=poCols(P), key=S.po.sort.key, dir=S.po.sort.dir;
+  const kv=L.map((l,k)=>poVal(P,C,V,l,LR[k],key)), ord=L.map((_,k)=>k);
+  ord.sort((a,b)=>{ const x=kv[a], y=kv[b]; return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*dir; });
+  S.po._n=ord.length;
+  const per=15, pages=Math.max(1,Math.ceil(ord.length/per)); if(S.po.page>=pages) S.po.page=pages-1;
+  const slice=ord.slice(S.po.page*per,S.po.page*per+per);
+  const tools='<div class="tbl-tools"><label><input type="checkbox" id="poOnly"'+(S.po.only?" checked":"")+'> Only lines with over qty</label><button class="btn primary" id="poCsv" type="button">Download CSV</button></div>';
+  let h=head(tools)+'<p class="sub" style="margin:-4px 0 8px">'+nf(ord.length)+' lines'+(S.pair?" for the selected row":" match the filters")+'. Use the filters at the top, the severity levels or a table row to narrow it.</p>';
   h+='<div class="scroll"><table><thead><tr>'+cols.map((c,ci)=>'<th class="'+(c[2]?"r ":"")+(ci===0?"s1":ci===1?"s2":"")+'" data-k="'+c[0]+'">'+c[1]+(key===c[0]?'<span class="ar">'+(dir>0?"▲":"▼")+'</span>':"")+'</th>').join("")+'</tr></thead><tbody>';
   if(!slice.length) h+='<tr><td colspan="'+cols.length+'" class="empty">No lines match these filters.</td></tr>';
-  slice.forEach(i=>{
-    h+='<tr><td class="wrapc s1">'+esc(OUT[P.o[i]].code)+'<span class="small">'+esc(OUT[P.o[i]].name)+'</span></td>'
-     +'<td class="wrapc s2">'+esc(ART[P.a[i]].no)+'<span class="small">'+esc(ART[P.a[i]].name)+'</span></td>'
-     +'<td>'+esc(P.lists.po[P.po[i]])+'</td><td>'+esc(P.lists.mov[P.mov[i]])+'</td>'
-     +(P.cb?'<td>'+esc(P.lists.cb[P.cb[i]])+'</td>':"")+(P.pd?'<td>'+poDate(P.pd[i])+'</td>':"")
-     +'<td>'+poDate(P.d[i])+'</td><td class="r">'+nf(P.q[i])+'</td><td class="r'+(P.ov[i]>0?" ovhi":"")+'">'+(P.ov[i]>0?nf(P.ov[i]):"–")+'</td></tr>';
+  slice.forEach(k=>{ const l=L[k], i=LR[k];
+    h+='<tr><td class="wrapc s1">'+esc(OUT[V.o[i]].code)+'<span class="small">'+esc(OUT[V.o[i]].name)+'</span></td>'
+     +'<td class="wrapc s2">'+esc(ART[V.a[i]].no)+'<span class="small">'+esc(ART[V.a[i]].name)+'</span></td>'
+     +'<td>'+esc(P.lists.po[P.po[l]])+'</td><td>'+esc(P.lists.mov[P.mov[l]])+'</td>'
+     +(P.cb?'<td>'+esc(P.lists.cb[P.cb[l]])+'</td>':"")+(P.pd?'<td>'+poDate(P.pd[l])+'</td>':"")
+     +'<td>'+poDate(P.d[l])+'</td><td class="r">'+nf(P.q[l])+'</td><td class="r'+(C.lov[l]>0?" ovhi":"")+'">'+(C.lov[l]>0?nf(C.lov[l]):"–")+'</td></tr>';
   });
   h+='</tbody></table></div><div class="pager"><button class="btn" id="poPrev" type="button"'+(S.po.page===0?" disabled":"")+'>Previous</button><span>Page '+(S.po.page+1)+' of '+nf(pages)+'</span><button class="btn" id="poNext" type="button"'+(S.po.page>=pages-1?" disabled":"")+'>Next</button></div>';
   box.innerHTML=h;
   box.querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{ const k=th.dataset.k; S.po.sort=S.po.sort.key===k?{key:k,dir:-S.po.sort.dir}:{key:k,dir:(["outlet","article","po","mov","cb"].includes(k)?1:-1)}; S.po.page=0; renderPO(); }));
   $("#poPrev")?.addEventListener("click",()=>{S.po.page--; renderPO();}); $("#poNext")?.addEventListener("click",()=>{S.po.page++; renderPO();});
   $("#poOnly").addEventListener("change",e=>{ S.po.only=e.target.checked; S.po.page=0; renderPO(); });
-  $("#poQ").addEventListener("change",e=>{ S.po.q=e.target.value; S.po.page=0; renderPO(); });
   $("#poCsv").addEventListener("click",()=>{
     const head=["Outlet code","Outlet name","Article","Article name","PO number","Movement"].concat(P.cb?["Created by"]:[]).concat(P.pd?["PO date"]:[]).concat(["Receiving date","Receiving qty","Over qty"]);
     const iso=o=>o==null?"":new Date(offMs(o)).toISOString().slice(0,10); const lines=[head.join(",")];
-    S.po._idx.forEach(i=>{ const vals=[OUT[P.o[i]].code,OUT[P.o[i]].name,ART[P.a[i]].no,ART[P.a[i]].name,P.lists.po[P.po[i]],P.lists.mov[P.mov[i]]].concat(P.cb?[P.lists.cb[P.cb[i]]]:[]).concat(P.pd?[iso(P.pd[i])]:[]).concat([iso(P.d[i]),P.q[i],P.ov[i]]);
+    ord.forEach(k=>{ const l=L[k], i=LR[k]; const vals=[OUT[V.o[i]].code,OUT[V.o[i]].name,ART[V.a[i]].no,ART[V.a[i]].name,P.lists.po[P.po[l]],P.lists.mov[P.mov[l]]].concat(P.cb?[P.lists.cb[P.cb[l]]]:[]).concat(P.pd?[iso(P.pd[l])]:[]).concat([iso(P.d[l]),P.q[l],C.lov[l]]);
       lines.push(vals.map(v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"').join(",")); });
     const blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
     const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="po_detail_"+S.open+"_to_"+META.closing+".csv"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
