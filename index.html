@@ -86,6 +86,7 @@ header.top{background:linear-gradient(115deg,var(--navy) 0%,#1638a8 55%,#2a62e8 
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);border-top:3px solid var(--accent);padding:9px 13px 9px;box-shadow:var(--shadow)}
 .kpi .k{font-size:12px;color:var(--ink-soft);font-weight:500}
 .kpi .v{font-family:var(--font-head);font-size:27px;font-weight:700;line-height:1.05;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi.sel{background:var(--accent-soft)}
 .kpi .s{font-size:11.5px;color:var(--ink-mute);margin-top:1px}
 
 /* panels */
@@ -523,11 +524,8 @@ function render(){
   const k4 = T==="over" ? ['Value of over receiving','BDT '+bdt(t.val),'At cost per unit'] : ['Received per unit sold',(t.sq>0?(t.rq/t.sq).toFixed(2):"–")+'×','Units received ÷ units sold'];
   const regs=topN(A.reg,k=>k,8), cats=topN(A.cat,k=>k,8), outs=topN(A.outl,k=>OUT[k].code+" · "+OUT[k].name.replace(/^[A-Z]\d+-/,""),8);
   let html = custom ? '<div class="mvnote"><span><b>Custom movement selection</b> · '+S.mov.size+' of '+ALLMOV.length+' movements. Incident rows, PO lines and cards are recalculated for the highest-scoring incidents kept by the build, so totals can differ from the default view.</span><button class="btn" id="mvDefault" type="button">Back to default</button></div>' : '';
-  html+='<section class="kpis">'
-   +kpi("Incidents",nf(t.inc),"Outlet–article pairs flagged")
-   +kpi("Incident rate",rate.toFixed(1)+"%",nf(t.inc)+" of "+nf(t.base)+" pairs received")
-   +kpi(T==="over"?"Units over received":"Units short",nf(t.qty),"Across flagged incidents")
-   +kpi(k4[0],k4[1],k4[2])+'</section>';
+  S._kpiFn=()=>kpiCards(T,V,t,rate,k4);
+  html+='<section class="kpis" id="kpis">'+S._kpiFn()+'</section>';
   html+=tableHTML(d,T,V,custom);
   if(T==="over") html+='<section class="panel" id="poBox"></section>';
   html+='<div class="grid"><section class="panel"><h2>Where it happens</h2><p class="sub">Size = incidents, shade = incident rate. Click a district to filter; click again to remove.</p><div class="mapbox" id="map"></div><div class="legend" id="mapLegend"></div></section>'
@@ -540,6 +538,23 @@ function render(){
   drawMap(A,T); wireBars({region:regs,cat:cats,outlet:outs},T); wireTable(d,T,V); renderPO();
   $("#foot").innerHTML='Opening stock is the stock on the opening date; closing is always the latest date in the data. '+(META.demo?"":'Built '+esc(META.generated)+'.');
 }
+function pairIndex(V){ const p=S.pair; if(!p||!V) return -1; for(let k=0;k<V.o.length;k++) if(V.o[k]===p.o&&V.a[k]===p.a) return k; return -1; }
+function kpiCards(T,V,t,rate,k4){
+  const i = T==="over" ? pairIndex(V) : -1;
+  if(i>=0){
+    const tag="Selected: "+pairLabel(V,i), sc=V.score[i], inc = sc!=null;
+    const sub = inc ? tag : "Not an incident for this movement selection";
+    return kpi("Incidents",inc?"1":"0",sub).replace('class="kpi"','class="kpi sel"')
+      +kpi("Score",inc?sc.toFixed(2):"–",inc?band(sc)[0]+" · "+tag:tag).replace('class="kpi"','class="kpi sel"')
+      +kpi("Units over received",inc?nf(V.qty[i]):"0",tag).replace('class="kpi"','class="kpi sel"')
+      +kpi("Value of over receiving",inc?"BDT "+nf(V.value[i]||0):"BDT 0",tag).replace('class="kpi"','class="kpi sel"');
+  }
+  return kpi("Incidents",nf(t.inc),"Outlet–article pairs flagged")
+   +kpi("Incident rate",rate.toFixed(1)+"%",nf(t.inc)+" of "+nf(t.base)+" pairs received")
+   +kpi(T==="over"?"Units over received":"Units short",nf(t.qty),"Across flagged incidents")
+   +kpi(k4[0],k4[1],k4[2]);
+}
+function refreshKpis(){ const el=$("#kpis"); if(el&&S._kpiFn) el.innerHTML=S._kpiFn(); }
 function kpi(k,v,s){ return '<div class="kpi"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s)+'</div></div>'; }
 
 function drawMap(A,T){
@@ -602,7 +617,12 @@ function selBarHTML(d){
 }
 function tableHTML(d,T,V,custom){
   const idx=rowsFor(d,T,V), key=S.sort.key, dir=S.sort.dir;
-  idx.sort((a,b)=>{ const x=cellVal(V,a,key), y=cellVal(V,b,key); return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*dir; });
+  const r2=v=>v==null?-1:Math.round(v*100)/100;
+  const sortv=(i,k)=>{ const x=cellVal(V,i,k); return k==="score"?r2(x):x; };
+  idx.sort((a,b)=>{ const x=sortv(a,key), y=sortv(b,key); let c=(typeof x==="number"?x-y:String(x).localeCompare(String(y)))*dir;
+    if(c) return c;
+    c=r2(cellVal(V,b,"score"))-r2(cellVal(V,a,"score")); if(c) return c;      // same value: score high->low, then over qty high->low
+    return (cellVal(V,b,"qty")||0)-(cellVal(V,a,"qty")||0); });
   S._idx=idx;
   const per=15, pages=Math.max(1,Math.ceil(idx.length/per)); if(S.page>=pages) S.page=pages-1;
   const slice=idx.slice(S.page*per,S.page*per+per), cols=COLS[T], r=V;
@@ -634,13 +654,13 @@ function tableHTML(d,T,V,custom){
 function setPair(o,a){
   S.pair = (S.pair&&S.pair.o===o&&S.pair.a===a) ? null : {o,a};
   document.querySelectorAll("tbody tr[data-i]").forEach(x=>x.classList.toggle("sel",!!(S.pair&&+x.dataset.o===S.pair.o&&+x.dataset.a===S.pair.a)));
-  S.po.page=0; renderSel(); renderPO();
+  S.po.page=0; renderSel(); refreshKpis(); renderPO();
 }
 function renderSel(){
   const el=$("#selbar"); if(!el||!DATA[S.open]) return; el.innerHTML=selBarHTML(DATA[S.open]);
   $("#selClear")?.addEventListener("click",clearPair);
 }
-function clearPair(){ S.pair=null; document.querySelectorAll("tbody tr.sel").forEach(x=>x.classList.remove("sel")); S.po.page=0; renderSel(); renderPO(); }
+function clearPair(){ S.pair=null; document.querySelectorAll("tbody tr.sel").forEach(x=>x.classList.remove("sel")); S.po.page=0; renderSel(); refreshKpis(); renderPO(); }
 function wireTable(d,T,V){
   document.querySelectorAll("th").forEach(th=>th.addEventListener("click",()=>{ if(th.closest("#poBox")) return; const k=th.dataset.k; S.sort = S.sort.key===k?{key:k,dir:-S.sort.dir}:{key:k,dir:(["outlet","article","cat","po","mov"].includes(k)?1:-1)}; S.page=0; render(); }));
   $("#prev")?.addEventListener("click",()=>{S.page--; render(); $(".tbl-head")?.scrollIntoView({block:"nearest"});});
